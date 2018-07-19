@@ -7,7 +7,9 @@ var gulp = require('gulp'),
         rename = require('gulp-rename'),
         version = require('gulp-version-number'),
         concat = require('gulp-concat'),
-        chug = require('gulp-chug');
+        chug = require('gulp-chug'),
+        replace = require('gulp-regex-replace'),
+        svg2png = require('gulp-svg2png');
 
 var gulp_js_modules = [
     'src/config/config.js',
@@ -15,9 +17,7 @@ var gulp_js_modules = [
     'node_modules/webplayer.common.hls.tv/src/localization.js',
     'node_modules/webplayer.desktop.hls.tv/web/js/script.min.js',
     'node_modules/webplayer.common.hls.tv/src/factory.js',
-    'node_modules/webplayer.common.hls.tv/src/playbackModule.js',
-    'node_modules/webplayer.common.hls.tv/src/classVideoTag.js',
-    'node_modules/webplayer.common.hls.tv/src/classHls.js',
+    'node_modules/webplayer.common.hls.tv/src/classStalker.js',
     'node_modules/webplayer.common.hls.tv/src/auth.js',
     'node_modules/webplayer.common.hls.tv/src/config.js',
     'src/js/*.js'
@@ -102,9 +102,17 @@ gulp.task('js', ['js-common'], function () {
 // ------------------------------- replacing project-images to proper directory
 gulp.task('images', function () {
     return gulp.
-    src(['node_modules/webplayer.desktop.hls.tv/web/images/**/*'])
+        src(['node_modules/webplayer.desktop.hls.tv/web/images/**/*'])
         .pipe(gulp.dest(gulp_images_dest));
 });
+
+gulp.task('svgToPng', function () {
+    return gulp.
+    src(['dest/images/**/*.svg'])
+        .pipe(svg2png())
+        .pipe(gulp.dest('olo'));
+});
+
 
 // ------------------------------- replacing fonts to proper directory
 gulp.task('fonts', function () {
@@ -116,6 +124,7 @@ gulp.task('fonts', function () {
 gulp.task('version', function () {
     return gulp.
             src(['node_modules/webplayer.desktop.hls.tv/web/*.html'])
+            //.pipe(replace({regex:'svg', replace:'png'}))
             .pipe(version(versionConfig))
             .pipe(gulp.dest('dest'));
 });

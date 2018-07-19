@@ -12,16 +12,18 @@
     "gulp-clean-css": "^3.9.2",
     "gulp-concat": "^2.6.1",
     "gulp-html-replace": "^1.6.2",
+    "gulp-regex-replace": "^0.2.3",
     "gulp-rename": "^1.2.2",
+    "gulp-rigger": "^0.5.8",
     "gulp-sass": "^3.1.0",
     "gulp-sass-glob": "^1.0.8",
+    "gulp-svg2png": "^2.0.2",
     "gulp-uglify": "^3.0.0",
-    "gulp-rigger": "^0.5.8",
     "gulp-version-number": "^0.1.7"
   },
   "dependencies": {
     "npm": "^6.0.0",
-    "webplayer.desktop.hls.tv": "git+ssh://git@devserv.hls.tv:hls/webplayer.desktop.hls.tv.git"
+    "webplayer.desktop.hls.tv": "git+ssh://git@devserv.hls.tv:hls/webplayer.desktop.hls.tv.git#HLS-1439-vnesti-izmeneniya-v-proekty-common-webplayer-dlya-stalkera"
   },
   "repository": {
     "type": "git",
