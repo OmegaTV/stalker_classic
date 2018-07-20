@@ -1,32 +1,58 @@
 video = document.getElementById('video');
 
-var video = stbPlayerManager.list[0];
+// var testString = 'testString';
+// console.log(gSTB);
+// console.log(typeof gSTB);
+// gSTB.saveUserData('test.txt', testString);
+// var data = gSTB.loadUserData('test.txt');
+// console.log(data);
+
+console.log(stbStorage.getItem('key'));
+stbStorage.setItem('key', 123);
+console.log(stbStorage.getItem('key'));
+
+var stbVideo = stbPlayerManager.list[0];
+var instance = stbSurfaceManager.list[0];
+
+instance.owner = stbVideo;
+instance.type = 2;
+instance.opacity = 0.1;
+//instance.moveBottom();
+console.log(typeof instance);
+console.log(typeof stbBrowser);
+
+// instance[0].type = 2;
+// instance[0].owner = stbVideo;
+// instance[0].opacity = 0.1;
+// console.log(instance);
+
+// stbVideo.id = 1;
+// stbVideo.type = 2;
+// stbVideo.opacity = 0.1;
+// stbVideo.owner = stbVideo;
+// stbSurfaceManager.list[0].moveDown();
 gSTB.SetTopWin(1);
 // stbplayer.aspectConversion = 4;
-video.setVideoControl = 1;
-video.setVideoState = 1;
+stbVideo.setVideoControl = 1;
+stbVideo.setVideoState = 1;
 
-// video.play({
-//     uri: 'https://cdnua01.hls.tv/hls/491a50b67896083136a13a5ce7cc3f1b/139/stream.m3u8',
-//     solution: 'auto'
-// });
-video.onPlayStart = function () {
+stbVideo.onPlayStart = function () {
     console.log('Video playback has begun.');
 };
 
 window.addEventListener('keydown', function ( event ) {
     switch ( event.keyCode ) {
         case 107: // volume up
-            video.volume++;
+            stbVideo.volume++;
             console.log('volume up');
             break;
         case 109: // volume down
-            video.volume--;
+            stbVideo.volume--;
             console.log('volume down');
             break;
         case 83:
             if ( event.altKey ) { // stop
-                video.stop();
+                stbVideo.stop();
             }
             break;
     }
