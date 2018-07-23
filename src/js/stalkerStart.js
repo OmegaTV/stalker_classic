@@ -1,40 +1,30 @@
 video = document.getElementById('video');
 
-// var testString = 'testString';
-// console.log(gSTB);
-// console.log(typeof gSTB);
-// gSTB.saveUserData('test.txt', testString);
-// var data = gSTB.loadUserData('test.txt');
-// console.log(data);
-
-console.log(stbStorage.getItem('key'));
-stbStorage.setItem('key', 123);
-console.log(stbStorage.getItem('key'));
+// console.log(stbStorage.getItem('key'));
+// stbStorage.setItem('key', 123);
+// console.log(stbStorage.getItem('key'));
 
 var stbVideo = stbPlayerManager.list[0];
+var stbVideo2 = stbPlayerManager.list[1];
 var instance = stbSurfaceManager.list[0];
+var instance2 = stbSurfaceManager.list[1];
+// instance.type = 2;
+// instance.owner = stbVideo;
+// instance.opacity = 1;
+//
+// instance2.type = 2;
+// instance2.owner = stbVideo2;
+// instance2.opacity = 0.1;
 
-instance.owner = stbVideo;
-instance.type = 2;
-instance.opacity = 0.1;
-//instance.moveBottom();
-console.log(typeof instance);
-console.log(typeof stbBrowser);
 
-// instance[0].type = 2;
-// instance[0].owner = stbVideo;
-// instance[0].opacity = 0.1;
-// console.log(instance);
+stbVideo.surface = instance;
+stbVideo2.surface = instance2;
 
-// stbVideo.id = 1;
-// stbVideo.type = 2;
-// stbVideo.opacity = 0.1;
-// stbVideo.owner = stbVideo;
-// stbSurfaceManager.list[0].moveDown();
 gSTB.SetTopWin(1);
-// stbplayer.aspectConversion = 4;
 stbVideo.setVideoControl = 1;
 stbVideo.setVideoState = 1;
+stbVideo2.setVideoControl = 1;
+stbVideo2.setVideoState = 1;
 
 stbVideo.onPlayStart = function () {
     console.log('Video playback has begun.');
@@ -54,6 +44,22 @@ window.addEventListener('keydown', function ( event ) {
             if ( event.altKey ) { // stop
                 stbVideo.stop();
             }
+            break;
+        case 37: // bottom
+            console.log('bottom');
+            instance.moveBottom();
+            break;
+        case 38: // up
+            console.log('up');
+            instance.moveUp();
+            break;
+        case 39: // top
+            console.log('top');
+            instance.moveTop();
+            break;
+        case 40: // down
+            console.log('down');
+            instance.moveDown();
             break;
     }
 });
