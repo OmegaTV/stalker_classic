@@ -4,27 +4,15 @@ video = document.getElementById('video');
 // stbStorage.setItem('key', 123);
 // console.log(stbStorage.getItem('key'));
 
+//наложение видео-контейнера и плейбека друг на друга
+gSTB.SetTopWin(0);
+gSTB.SetMode(1);
+//gSTB.SetWinMode(0, 1);
+gSTB.SetTransparentColor(0);
+//gSTB.SetChromaKey(0, 0xffffff);
+
 var stbVideo = stbPlayerManager.list[0];
-var stbVideo2 = stbPlayerManager.list[1];
 var instance = stbSurfaceManager.list[0];
-var instance2 = stbSurfaceManager.list[1];
-// instance.type = 2;
-// instance.owner = stbVideo;
-// instance.opacity = 1;
-//
-// instance2.type = 2;
-// instance2.owner = stbVideo2;
-// instance2.opacity = 0.1;
-
-
-stbVideo.surface = instance;
-stbVideo2.surface = instance2;
-
-gSTB.SetTopWin(1);
-stbVideo.setVideoControl = 1;
-stbVideo.setVideoState = 1;
-stbVideo2.setVideoControl = 1;
-stbVideo2.setVideoState = 1;
 
 stbVideo.onPlayStart = function () {
     console.log('Video playback has begun.');
