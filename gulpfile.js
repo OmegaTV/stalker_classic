@@ -20,7 +20,7 @@ var gulp_js_modules = [
     'node_modules/webplayer.common.hls.tv/src/classStalker.js',
     'node_modules/webplayer.common.hls.tv/src/auth.js',
     'node_modules/webplayer.common.hls.tv/src/config.js',
-    'src/js/*.js'
+    'src/js/**/*.js'
 ];
 
 var gulp_js_dest = "dest/js";
@@ -110,7 +110,7 @@ gulp.task('svgToPng', function () {
     return gulp.
     src(['dest/images/**/*.svg'])
         .pipe(svg2png())
-        .pipe(gulp.dest('olo'));
+        .pipe(gulp.dest(gulp_images_dest));
 });
 
 

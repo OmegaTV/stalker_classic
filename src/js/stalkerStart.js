@@ -7,16 +7,16 @@ video = document.getElementById('video');
 //наложение видео-контейнера и плейбека друг на друга
 gSTB.SetTopWin(0);
 gSTB.SetMode(1);
-//gSTB.SetWinMode(0, 1);
+////gSTB.SetWinMode(0, 1);
 gSTB.SetTransparentColor(0);
-//gSTB.SetChromaKey(0, 0xffffff);
+////gSTB.SetChromaKey(0, 0xffffff);
 
 var stbVideo = stbPlayerManager.list[0];
 var instance = stbSurfaceManager.list[0];
-
-stbVideo.onPlayStart = function () {
-    console.log('Video playback has begun.');
-};
+//
+// stbVideo.onPlayStart = function () {
+//     console.log('Video playback has begun.');
+// };
 
 window.addEventListener('keydown', function ( event ) {
     switch ( event.keyCode ) {
@@ -34,16 +34,16 @@ window.addEventListener('keydown', function ( event ) {
             }
             break;
         case 37: // bottom
-            console.log('bottom');
-            instance.moveBottom();
+            console.log('left');
+            openLeftMenu();
             break;
         case 38: // up
             console.log('up');
             instance.moveUp();
             break;
         case 39: // top
-            console.log('top');
-            instance.moveTop();
+            console.log('right');
+            openRightMenu();
             break;
         case 40: // down
             console.log('down');
