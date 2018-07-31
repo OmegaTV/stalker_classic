@@ -9,6 +9,7 @@ var gulp = require('gulp'),
         concat = require('gulp-concat'),
         chug = require('gulp-chug'),
         replace = require('gulp-regex-replace'),
+        clean = require('gulp-clean'),
         svg2png = require('gulp-svg2png');
 
 var gulp_js_modules = [
@@ -54,13 +55,19 @@ gulp.task('build:prod:webos', function () {
     gulp.start(['sass', 'css', 'images', 'fonts', 'js-common', 'js', 'version']);
 });
 
-gulp.task('sass', function () {
+gulp.task('sass', ['cleanCss'], function () {
     return gulp
             .src('src/sass/style.scss')
             .pipe(sassGlob())
             .pipe(sass())
             .pipe(autoprefixer('last 2 versions'))
             .pipe(gulp.dest(gulp_css_dest));
+});
+
+gulp.task('cleanCss', function () {
+    return gulp
+        .src(gulp_css_dest + '/style.css', {read: false})
+        .pipe(clean());
 });
 
 gulp.task('css', ['sass'], function () {
@@ -70,7 +77,7 @@ gulp.task('css', ['sass'], function () {
                 gulp_css_dest + '/style.css'
             ])
             .pipe(concat('style.css'))
-            .pipe(minifyCSS({compatibility: 'ie8'}))
+            //.pipe(minifyCSS({compatibility: 'ie8'}))
             .pipe(gulp.dest(gulp_css_dest));
 });
 
@@ -124,7 +131,7 @@ gulp.task('fonts', function () {
 gulp.task('version', function () {
     return gulp.
             src(['node_modules/webplayer.desktop.hls.tv/web/*.html'])
-            //.pipe(replace({regex:'svg', replace:'png'}))
+            .pipe(replace({regex:'svg', replace:'png'}))
             .pipe(version(versionConfig))
             .pipe(gulp.dest('dest'));
 });

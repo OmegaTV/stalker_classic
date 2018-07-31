@@ -1,4 +1,4 @@
-video = document.getElementById('video');
+video = document.getElementById('video-container');
 
 // console.log(stbStorage.getItem('key'));
 // stbStorage.setItem('key', 123);
@@ -7,16 +7,16 @@ video = document.getElementById('video');
 //наложение видео-контейнера и плейбека друг на друга
 gSTB.SetTopWin(0);
 gSTB.SetMode(1);
-////gSTB.SetWinMode(0, 1);
-gSTB.SetTransparentColor(0);
+// ////gSTB.SetWinMode(0, 1);
+ gSTB.SetTransparentColor(0);
 ////gSTB.SetChromaKey(0, 0xffffff);
 
 var stbVideo = stbPlayerManager.list[0];
 var instance = stbSurfaceManager.list[0];
-//
-// stbVideo.onPlayStart = function () {
-//     console.log('Video playback has begun.');
-// };
+
+stbVideo.onPlayStart = function () {
+    console.log('Video playback has begun.');
+};
 
 window.addEventListener('keydown', function ( event ) {
     switch ( event.keyCode ) {
@@ -33,24 +33,32 @@ window.addEventListener('keydown', function ( event ) {
                 stbVideo.stop();
             }
             break;
-        case 37: // bottom
+        case 37:
             console.log('left');
             openLeftMenu();
             break;
         case 38: // up
             console.log('up');
-            instance.moveUp();
+            prevChannelInList();
             break;
         case 39: // top
             console.log('right');
-            openRightMenu();
+            Player.prototype.watchEpg();
             break;
         case 40: // down
             console.log('down');
-            instance.moveDown();
+            nextChannelInList();
             break;
+        case 13: //enter
+            console.log('enter');
+            Player.prototype.selectChannel();
+            break;
+        case 89: //info
+            console.log('info');
+            openCategories();
     }
 });
+
 window.onload = function() {
     function Webos() {
         Player.apply(this, arguments);
@@ -72,3 +80,106 @@ window.onload = function() {
     });
 
 };
+
+
+//  Обрабатываем JSON с epg
+Player.prototype.loadEpg = function (url, callback) {
+    var self = this;
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', url, true);
+    //xhr.responseType = "json";
+    xhr.onload = function() {
+        epg.store(JSON.parse(this.responseText));
+        if(xhr.readyState == 4 && xhr.status === 200) {
+            if (callback) {
+                callback();
+            }
+            self.initRename();
+        }
+    };
+    xhr.onerror = function() {
+        console.log( 'Ошибка ' + this.status );
+    };
+    xhr.send();
+};
+
+
+//листаем список каналов вверх
+var channelActive;
+function prevChannelInList() {
+    if (!channelActive) {
+        channelActive = document.querySelector("._channel.item-active");
+    }
+    var currentChannel = document.getElementsByClassName("_channel item-active")[0];
+    channelActive.classList.remove("ch-item_active", "item-active");
+    var prevChannel = channelActive.previousSibling;
+    if (prevChannel && prevChannel.tagName == 'DIV') {
+        prevChannel.classList.add("ch-item_active", "item-active");
+        channelActive = prevChannel;
+    }
+    else {
+        document.querySelectorAll('._channels_group:not(.hidden) ._channel:last-child')[0].classList.add("ch-item_active", "item-active");
+        channelActive = document.querySelectorAll('._channels_group:not(.hidden) ._channel:last-child')[0];
+    }
+    channelListScroll(channelActive, 'prev');
+    var activeChannel = document.querySelector('._channel.item-active');
+    //Player.prototype.channelMouseOver(activeChannel);
+}
+
+//листаем список каналов вниз
+function nextChannelInList () {
+    var nextChannel;
+    if (!channelActive) {
+        channelActive = document.querySelector("._channel.item-active");
+    }
+    var currentChannel = channelActive;
+    channelActive.classList.remove("ch-item_active", "item-active");
+    if (channelActive.nextElementSibling) {
+        nextChannel = channelActive.nextSibling;
+        if (nextChannel.getAttribute("_cid")) {
+            nextChannel.classList.add("ch-item_active", "item-active");
+        }
+    }
+    else {
+        document.querySelectorAll('._channels_group:not(.hidden) ._channel:nth-child(2)')[0].classList.add("ch-item_active", "item-active");
+    }
+    channelActive = nextChannel;
+    channelListScroll(currentChannel, 'next');
+    var activeChannel = document.querySelector('._channel.item-active');
+    //Player.prototype.channelMouseOver(activeChannel);
+}
+
+
+var channelContainerScroll = 0;
+function channelListScroll(currentChannel, direction) {
+    console.log(currentChannel.getAttribute('_cid'));
+    if (direction == 'next') {
+        if (currentChannel.nextSibling) {       //текущий канал НЕ последний
+            var nextChannel = currentChannel.nextSibling;
+            var isVisible = checkIfVisible(nextChannel);
+            if (!isVisible) {
+                nextChannel.scrollIntoView();
+                //channelContainerScroll = currentChannel.getBoundingClientRect().top;
+            }
+        }
+        else {                                  //текущий канал последний
+            //channelContainerScroll = 0;
+            channelGroupsContainer.scrollTop = 0;
+        }
+    }
+    else if (direction == 'prev') {     //здесь currentChannel уже является следующим наведенным каналом
+        if (currentChannel.nextSibling) {       //текущий канал НЕ первый
+            //var isVisible = checkIfVisible(currentChannel);
+            //if (prevChannelPosTop <= containerPosTop) {
+            if (!isVisible) {
+                console.log('OLOLO');
+                currentChannel.scrollIntoView();
+                //channelContainerScroll = currentChannel.getBoundingClientRect().top;
+            }
+        }
+        else {                                                       //текущий канал первый
+            //channelContainerScroll = currentChannel.getBoundingClientRect().top;
+            //currentChannel.scrollIntoView();
+        }
+    }
+}
