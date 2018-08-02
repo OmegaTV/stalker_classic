@@ -89,14 +89,26 @@ window.addEventListener('keydown', function ( event ) {
         case 13: //enter
             console.log('enter');
             switch (mag.currentObj) {
-                case(NAV_MENU_ICON):
+                case NAV_MENU_ICON :
                     mag.openMenu();
                     break;
-                case(NAV_PLAYER_PANEL_UP):
+                case NAV_PLAYER_PANEL_UP :
                     mag.eventPanel();
                     break;
-                case(NAV_PLAYER_PANEL_DOWN):
+                case NAV_PLAYER_PANEL_DOWN :
                     mag.eventPanel();
+                    break;
+                case NAV_MENU_LEFT_CHANNELS :
+                    mag.navigation.selectChannel();
+                    mag.navigation.removeFocusFromMenusIcons();
+                    mag.navigation.closeLeftMenu();
+                    mag.openPlayback();
+                    break;
+                case NAV_MENU_LEFT_CATEGORY :
+                    mag.navigation.setFirstChannelActive();
+                    mag.navigation.clearChannelScroll();
+                    mag.setChannelsMode();
+                    stalker.channelActive = null;
                     break;
             }
             break;
@@ -112,6 +124,10 @@ window.addEventListener('keydown', function ( event ) {
                 case NAV_PLAYER_PANEL_DOWN :
                     mag.navigation.leftPlaybackItem();
                     break;
+                case NAV_MENU_LEFT_CHANNELS :
+                    mag.navigation.openCategories();
+                    mag.setCategoryMode();
+                    break;
             }
             break;
         case 39: // right-button
@@ -126,6 +142,20 @@ window.addEventListener('keydown', function ( event ) {
                 case NAV_PLAYER_PANEL_DOWN :
                     mag.navigation.rightPlaybackItem();
                     break;
+                case NAV_MENU_LEFT_CHANNELS :
+                    mag.openEpgForChannels();
+                    break;
+                case NAV_MENU_LEFT_CATEGORY :
+                    mag.navigation.setFirstChannelActive();
+                    mag.navigation.clearChannelScroll();
+                    mag.setChannelsMode();
+                    var elems = document.querySelectorAll(".item-active");
+                    console.log(elems.length);
+                    for (i=0;i<elems.length;i++) {
+                        console.log(elems[i].className);
+                    }
+                    stalker.channelActive = null;
+                    break;
             }
             break;
         case 38: // up-button
@@ -139,6 +169,13 @@ window.addEventListener('keydown', function ( event ) {
                 case NAV_PLAYER_PANEL_DOWN :
                     mag.navigation.upPlaybackItem();
                     mag.setPlayerPanelUpMode();
+                    break;
+                case NAV_MENU_LEFT_CHANNELS :
+                    stalker.prevChannelInList();
+                    break;
+                case NAV_MENU_LEFT_CATEGORY :
+                    mag.navigation.prevCategoryInList();
+                    mag.selecCategoryFocus();
                     break;
             }
             break;
@@ -155,6 +192,13 @@ window.addEventListener('keydown', function ( event ) {
                     mag.navigation.downPlaybackItem();
                     mag.setPlayerPanelDownMode();
                     break;
+                case NAV_MENU_LEFT_CHANNELS :
+                    stalker.nextChannelInList();
+                    break;
+                case NAV_MENU_LEFT_CATEGORY :
+                    mag.navigation.nextCategoryInList();
+                    mag.selecCategoryFocus();
+                    break;
             }
             break;
         case 89: //info
@@ -170,7 +214,9 @@ window.addEventListener('keydown', function ( event ) {
 });
 
 window.onload = function() {
+    console.log(document.body.clientWidth);
     function Stalker() {
+        this.channelActive = null;
         Player.apply(this, arguments);
     }
     Stalker.prototype = Object.create(Player.prototype);
@@ -212,37 +258,39 @@ window.onload = function() {
     };
 
     //листаем список каналов вверх
-    var channelActive;
     Stalker.prototype.prevChannelInList = function () {
-        if (!channelActive) {
-            channelActive = document.querySelector("._channel.item-active");
+        if (!this.channelActive) {
+            this.channelActive = document.querySelector(".ch-item.item-active");
         }
-        var currentChannel = document.getElementsByClassName("_channel item-active")[0];
-        channelActive.classList.remove("ch-item_active", "item-active");
-        var prevChannel = channelActive.previousSibling;
+        var currentChannel = document.getElementsByClassName("ch-item item-active")[0];
+        this.channelActive.classList.remove("ch-item_active", "item-active");
+        var prevChannel = this.channelActive.previousSibling;
         if (prevChannel && prevChannel.tagName == 'DIV') {
             prevChannel.classList.add("ch-item_active", "item-active");
-            channelActive = prevChannel;
+            this.channelActive = prevChannel;
         }
         else {
-            document.querySelectorAll('._channels_group:not(.hidden) ._channel:last-child')[0].classList.add("ch-item_active", "item-active");
-            channelActive = document.querySelectorAll('._channels_group:not(.hidden) ._channel:last-child')[0];
+            document.querySelectorAll('._channels_group:not(.hidden) .ch-item:last-child')[0].classList.add("ch-item_active", "item-active");
+            this.channelActive = document.querySelectorAll('._channels_group:not(.hidden) .ch-item:last-child')[0];
         }
-        this.channelListScroll(channelActive, 'prev');
-        var activeChannel = document.querySelector('._channel.item-active');
+        this.channelListScroll(this.channelActive, 'prev');
+        var activeChannel = document.querySelector('.ch-item.item-active');
         //Player.prototype.channelMouseOver(activeChannel);
     };
 
 //листаем список каналов вниз
     Stalker.prototype.nextChannelInList = function () {
+        console.log(document.querySelector(".ch-item.item-active"));
         var nextChannel;
-        if (!channelActive) {
-            channelActive = document.querySelector("._channel.item-active");
+        if (this.channelActive == null) {
+            console.log("OLOLO");
+            this.channelActive = document.querySelector(".ch-item.item-active");
         }
-        var currentChannel = channelActive;
-        channelActive.classList.remove("ch-item_active", "item-active");
-        if (channelActive.nextElementSibling) {
-            nextChannel = channelActive.nextSibling;
+        console.log(this.channelActive);
+        var currentChannel = this.channelActive;
+        this.channelActive.classList.remove("ch-item_active", "item-active");
+        if (this.channelActive.nextElementSibling) {
+            nextChannel = this.channelActive.nextSibling;
             if (nextChannel.getAttribute("_cid")) {
                 nextChannel.classList.add("ch-item_active", "item-active");
             }
@@ -250,7 +298,7 @@ window.onload = function() {
         else {
             document.querySelectorAll('._channels_group:not(.hidden) ._channel:nth-child(2)')[0].classList.add("ch-item_active", "item-active");
         }
-        channelActive = nextChannel;
+        this.channelActive = nextChannel;
         this.channelListScroll(currentChannel, 'next');
         var activeChannel = document.querySelector('._channel.item-active');
         //Player.prototype.channelMouseOver(activeChannel);
@@ -357,7 +405,6 @@ mag.openMenu = function(){
     switch(mag.navigation.getFocusedMenuIcon()){
         case("main-menu"):
             mag.navigation.openLeftMenu();
-            mag.navigation.setFirstChannelActive();
             mag.navigation.clearChannelScroll();
             mag.setChannelsMode();
             break;
@@ -366,6 +413,14 @@ mag.openMenu = function(){
             mag.setSettingsMode();
             break;
         default:
+            break;
+    }
+};
+
+mag.selecCategoryFocus = function(){
+    switch(mag.navigation.getFocusedCategory()){
+        case("blocked"):
+            //mag.openPopup("category");
             break;
     }
 };
