@@ -3,6 +3,19 @@
   background: #0f6fd0;
 }
 
+/*test*/
+.main-content {
+  width: 1232px !important;
+  height: 720px !important;
+  overflow: hidden;
+  margin: auto !important;
+  background-color: green !important;
+}
+.header {
+  width: 1232px !important;
+}
+/*test end*/
+
 @media screen and (min-width: 1200px) and (max-width: 1300px) {
   .category-item__title {
     width: 70% !important;
