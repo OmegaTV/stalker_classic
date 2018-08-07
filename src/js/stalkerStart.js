@@ -62,7 +62,6 @@ mag.setPromoLineMode = function(){this.currentObj = NAV_PROMO_LINE;};
 mag.setMode = function(currentObj){ this.currentObj = currentObj;};
 
 mag.init = function () {
-    console.log("init");
     mag.navigation = new Adapter();
     mag.openPlayback();
 };
@@ -144,6 +143,9 @@ window.addEventListener('keydown', function ( event ) {
                     break;
                 case NAV_MENU_LEFT_CHANNELS :
                     mag.openEpgForChannels();
+                    setTimeout(function(){
+                        stalker.setActiveFirstEpgItem();
+                    },3000);
                     break;
                 case NAV_MENU_LEFT_CATEGORY :
                     mag.navigation.setFirstChannelActive();
@@ -173,6 +175,9 @@ window.addEventListener('keydown', function ( event ) {
                 case NAV_MENU_LEFT_CHANNELS :
                     stalker.prevChannelInList();
                     break;
+                case NAV_MENU_LEFT_PROGRAMS :
+                    console.log('epg-up');
+                    break;
                 case NAV_MENU_LEFT_CATEGORY :
                     mag.navigation.prevCategoryInList();
                     mag.selecCategoryFocus();
@@ -195,6 +200,9 @@ window.addEventListener('keydown', function ( event ) {
                 case NAV_MENU_LEFT_CHANNELS :
                     stalker.nextChannelInList();
                     break;
+                case NAV_MENU_LEFT_PROGRAMS :
+                    console.log('epg-down');
+                    break;
                 case NAV_MENU_LEFT_CATEGORY :
                     mag.navigation.nextCategoryInList();
                     mag.selecCategoryFocus();
@@ -214,7 +222,6 @@ window.addEventListener('keydown', function ( event ) {
 });
 
 window.onload = function() {
-    console.log(document.body.clientWidth);
     function Stalker() {
         this.channelActive = null;
         Player.apply(this, arguments);
@@ -280,13 +287,10 @@ window.onload = function() {
 
 //листаем список каналов вниз
     Stalker.prototype.nextChannelInList = function () {
-        console.log(document.querySelector(".ch-item.item-active"));
         var nextChannel;
         if (this.channelActive == null) {
-            console.log("OLOLO");
             this.channelActive = document.querySelector(".ch-item.item-active");
         }
-        console.log(this.channelActive);
         var currentChannel = this.channelActive;
         this.channelActive.classList.remove("ch-item_active", "item-active");
         if (this.channelActive.nextElementSibling) {
@@ -306,7 +310,6 @@ window.onload = function() {
 
     var channelContainerScroll = 0;
     Stalker.prototype.channelListScroll = function (currentChannel, direction) {
-        console.log(currentChannel.getAttribute('_cid'));
         if (direction == 'next') {
             if (currentChannel.nextSibling) {       //текущий канал НЕ последний
                 var nextChannel = currentChannel.nextSibling;
@@ -337,6 +340,19 @@ window.onload = function() {
         }
     };
 
+    //ставим фиолетовый фокус на первый достпный элемент из списка Епг
+    Stalker.prototype.setActiveFirstEpgItem = function () {
+        var firstVisibleProgram;
+        var programms = document.querySelectorAll('.epg-day-prog');
+        for (i=0; i<programms.length; i++) {
+            if (!programms[i].classList.contains('hidden')) {
+                firstVisibleProgram = programms[i];
+                break;
+            }
+        }
+        addClassCurrentItem(firstVisibleProgram);
+        addClassActiveItem(firstVisibleProgram);
+    };
 
     stalker = new Stalker();
     Stalker.prototype.constructor = Stalker;
@@ -354,7 +370,6 @@ window.onload = function() {
 };
 
 mag.openPlayback = function(){
-    console.log("openPlayback");
     mag.navigation.showPlayback();
     this.setPlayerPanelUpMode();
     mag.navigation.setFocusOnPause();
@@ -417,10 +432,23 @@ mag.openMenu = function(){
     }
 };
 
+mag.openEpgForChannels = function(){
+    //if(mag.navigation.ifHasEpg()){
+    mag.navigation.closeCategories();
+    //mag.navigation.saveSelectedChannelId();                         //вернуть когда будет вмерджена ветка с обработкой ошибок xhr-запросов!!!
+    mag.navigation.watchEpg(function(){
+        mag.setErrorHandlerEpgMode();
+        //mag.navigation.setFocusOnErrorPopup();                        //вернуть когда будет вмерджена ветка с обработкой ошибок xhr-запросов!!!
+    });
+    mag.navigation.clearEpgScroll();
+    mag.setProgramsMode();
+    //}
+};
+
 mag.selecCategoryFocus = function(){
     switch(mag.navigation.getFocusedCategory()){
         case("blocked"):
             //mag.openPopup("category");
             break;
     }
-};
+}
