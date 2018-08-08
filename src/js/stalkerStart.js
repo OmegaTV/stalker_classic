@@ -127,6 +127,11 @@ window.addEventListener('keydown', function ( event ) {
                     mag.navigation.openCategories();
                     mag.setCategoryMode();
                     break;
+                case(NAV_MENU_LEFT_PROGRAMS):
+                    mag.navigation.hideEpgsBlocks();
+                    mag.setChannelsMode();
+                    mag.navigation.returnFocusOnChannel();
+                    break;
             }
             break;
         case 39: // right-button
@@ -177,6 +182,7 @@ window.addEventListener('keydown', function ( event ) {
                     break;
                 case NAV_MENU_LEFT_PROGRAMS :
                     console.log('epg-up');
+                    mag.navigation.prevEpginList();
                     break;
                 case NAV_MENU_LEFT_CATEGORY :
                     mag.navigation.prevCategoryInList();
@@ -202,6 +208,7 @@ window.addEventListener('keydown', function ( event ) {
                     break;
                 case NAV_MENU_LEFT_PROGRAMS :
                     console.log('epg-down');
+                    mag.navigation.nextEpginList();
                     break;
                 case NAV_MENU_LEFT_CATEGORY :
                     mag.navigation.nextCategoryInList();
@@ -451,4 +458,4 @@ mag.selecCategoryFocus = function(){
             //mag.openPopup("category");
             break;
     }
-}
+};

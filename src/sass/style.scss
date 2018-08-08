@@ -1,12 +1,32 @@
 body {
   background-color: transparent !important;
 }
-
 .main-menu {
   background-color: transparent !important;
   background-image: url('../images/transparent.png');
   background-repeat: repeat;
 }
+
+// <----- хардкод выосты контейнеров для правильного скролла
+.categories-container,
+.channels-list-container,
+.program-list-container {
+  height: 650px !important;
+}
+// ------>
+
+// <----- хардкод ширин контейнеров для отображения без багов
+.channels-list-container {
+  width: 384px !important;
+}
+.categories-container,
+.program-list-container {
+  width: 320px !important;
+}
+.more-about-container {
+  width: 576px !important;
+}
+// ------>
 
 .video-controls_top .video-controls__item:hover,
 .video-controls_top .video-controls__item.active {
