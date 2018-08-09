@@ -103,6 +103,9 @@ window.addEventListener('keydown', function ( event ) {
                     mag.navigation.closeLeftMenu();
                     mag.openPlayback();
                     break;
+                case(NAV_MENU_LEFT_INFO_PROGRAM_GALLERY):
+                    mag.navigation.setGalleryImg();
+                    break;
                 case NAV_MENU_LEFT_CATEGORY :
                     mag.navigation.setFirstChannelActive();
                     mag.navigation.clearChannelScroll();
@@ -132,6 +135,30 @@ window.addEventListener('keydown', function ( event ) {
                     mag.setChannelsMode();
                     mag.navigation.returnFocusOnChannel();
                     break;
+                case(NAV_MENU_LEFT_INFO_PROGRAM):
+                    mag.navigation.closeExtendedEpg();
+                    mag.setProgramsMode();
+                    break;
+                case(NAV_MENU_LEFT_INFO_PROGRAM_GALLERY):
+                    console.log("ifFirstGalleryImg Prev", mag.navigation.ifFirstGalleryImg());
+                    if(mag.navigation.ifFirstGalleryImg()){
+                        mag.navigation.removeFocusFromGallery();
+                        mag.navigation.closeExtendedEpg();
+                        mag.setProgramsMode();
+                    }
+                    else if(mag.navigation.ifFocusOnGallery()){
+                        mag.navigation.prevGalleryImg();
+                    }
+                    else{
+                        mag.navigation.closeExtendedEpg();
+                        mag.setProgramsMode();
+                    }
+                    break;
+                case(NAV_MENU_LEFT_INFO_PROGRAM_TEXT):
+                    mag.navigation.removeFocusFromAboutText();
+                    mag.navigation.closeExtendedEpg();
+                    mag.setProgramsMode();
+                    break;
             }
             break;
         case 39: // right-button
@@ -151,6 +178,24 @@ window.addEventListener('keydown', function ( event ) {
                     setTimeout(function(){
                         stalker.setActiveFirstEpgItem();
                     },3000);
+                    break;
+                case(NAV_MENU_LEFT_PROGRAMS):
+                    mag.openExtendedEpgForChannels();
+                    break;
+                case(NAV_MENU_LEFT_INFO_PROGRAM):
+                    if(mag.navigation.ifHasGallery()){
+                        mag.navigation.setFocusOnGallery();
+                        mag.setInfoProgramGalleryMode();
+                    }
+                    else if(mag.navigation.ifHasAboutText()){
+                        mag.navigation.setFocusOnAboutText();
+                        mag.setInfoProgramTextMode();
+                    }
+                    break;
+                case(NAV_MENU_LEFT_INFO_PROGRAM_GALLERY):
+                    if(mag.navigation.ifFocusOnGallery()){
+                        mag.navigation.nextGalleryImg();
+                    }
                     break;
                 case NAV_MENU_LEFT_CATEGORY :
                     mag.navigation.setFirstChannelActive();
@@ -184,6 +229,15 @@ window.addEventListener('keydown', function ( event ) {
                     console.log('epg-up');
                     mag.navigation.prevEpginList();
                     break;
+                case(NAV_MENU_LEFT_INFO_PROGRAM_TEXT):
+                    if(mag.navigation.ifAboutTextNotScroll()){
+                        mag.navigation.removeFocusFromAboutText();
+                        mag.setInfoProgramGalleryMode();
+                        mag.navigation.setFocusOnGallery();
+                    } else{
+                        mag.navigation.scrollUpAboutText();
+                    }
+                    break;
                 case NAV_MENU_LEFT_CATEGORY :
                     mag.navigation.prevCategoryInList();
                     mag.selecCategoryFocus();
@@ -210,6 +264,16 @@ window.addEventListener('keydown', function ( event ) {
                     console.log('epg-down');
                     mag.navigation.nextEpginList();
                     break;
+                case(NAV_MENU_LEFT_INFO_PROGRAM_GALLERY):
+                    if(mag.navigation.ifHasAboutText()){
+                        mag.navigation.removeFocusFromGallery();
+                        mag.navigation.setFocusOnAboutText();
+                        mag.setInfoProgramTextMode();
+                    }
+                    break;
+                case(NAV_MENU_LEFT_INFO_PROGRAM_TEXT):
+                    mag.navigation.scrollDownAboutText();
+                    break;
                 case NAV_MENU_LEFT_CATEGORY :
                     mag.navigation.nextCategoryInList();
                     mag.selecCategoryFocus();
@@ -229,6 +293,7 @@ window.addEventListener('keydown', function ( event ) {
 });
 
 window.onload = function() {
+    console.log(document.body.clientWidth);
     function Stalker() {
         this.channelActive = null;
         Player.apply(this, arguments);
@@ -450,6 +515,16 @@ mag.openEpgForChannels = function(){
     mag.navigation.clearEpgScroll();
     mag.setProgramsMode();
     //}
+};
+
+mag.openExtendedEpgForChannels = function(){
+    if(mag.navigation.ifHasExtendedEpg()){
+        mag.navigation.watchExtendedEpg(null,function(){
+            mag.setErrorHandlerExtEpgMode();
+            //mag.navigation.setFocusOnErrorPopup();                         //вернуть когда будет вмерджена ветка с обработкой ошибок xhr-запросов!!!
+        });
+        mag.setInfoProgramMode();
+    }
 };
 
 mag.selecCategoryFocus = function(){
