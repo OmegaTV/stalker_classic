@@ -31,6 +31,12 @@ body {
 }
 // ------>
 
+// <----- хардкод блока со стрелками
+.block-with-arrows {
+  left: 375px !important;
+}
+// ------>
+
 .video-controls_top .video-controls__item:hover,
 .video-controls_top .video-controls__item.active {
   background: #0f6fd0;

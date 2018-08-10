@@ -1,3 +1,58 @@
+init = function () {
+    Player.prototype.getM3UJson();
+    Stalker.prototype.loadEpg(Player.prototype.buildBasicEpgURL(getLanguage()));
+    document.getElementsByClassName('main-content')[0].classList.remove('hidden');
+};
+
+//переопределить потом в epg.js
+// store: function (epg) {
+//     console.log('STORE-EPG');
+//     if (!Array.isArray(epg)) {
+//         console.error("Error: can't parse epg data");
+//         return false;
+//     }
+//
+//     stbStorage.clear();
+//     for (var ch_data_i in epg) {
+//         var ch_data = epg[ch_data_i];
+//         var ch_id = ch_data.channel_id;
+//         var epg_data_i = 0;
+//
+//         for (epg_data_i in ch_data.list) {
+//             var epg_data = ch_data.list[epg_data_i];
+//             var is_details = 0;
+//             var store_data = [epg_data.start_at, epg_data.stop_at, epg_data.id, is_details, epg_data.title];
+//             stbStorage.setItem(this.epg_key + ch_id + ':' + epg_data_i, store_data);
+//         }
+//
+//         stbStorage.setItem(this.epg_index + ch_id, epg_data_i);
+//     }
+//     console.log(stbStorage.length);
+// },
+//
+// searchProgram: function (ch_id, date) {
+//     var self = this;
+//     var searchTime = (date.getTime() / 1000) | 0;
+//     //console.log(searchTime);
+//     var ch_data_i = stbStorage.getItem(this.epg_index + ch_id);
+//     if (!ch_data_i) {
+//         return null;
+//     }
+//
+//     for (var epg_data_i = 0; epg_data_i <= ch_data_i; epg_data_i++) {
+//         var item = stbStorage.getItem(this.epg_key + ch_id + ':' + epg_data_i);
+//         item = item ? item.split(',', 5) : null;
+//
+//         if (item && item[0] <= searchTime && item[1] >= searchTime) {
+//             //console.log(item);
+//             return item;
+//         }
+//     }
+//     return null;
+// }
+
+
+
 video = document.getElementById('video-container');
 
 var NAV_MENU_LEFT_CHANNELS = "channels";
@@ -317,6 +372,7 @@ window.onload = function() {
 
     //  Обрабатываем JSON с epg
     Stalker.prototype.loadEpg = function (url, callback) {
+        console.log('stalker.loadEpg');
         var self = this;
         var xhr = new XMLHttpRequest();
         xhr.open('GET', url, true);
@@ -354,7 +410,7 @@ window.onload = function() {
         }
         this.channelListScroll(this.channelActive, 'prev');
         var activeChannel = document.querySelector('.ch-item.item-active');
-        //Player.prototype.channelMouseOver(activeChannel);
+        Player.prototype.channelMouseOver(activeChannel);
     };
 
 //листаем список каналов вниз
@@ -377,7 +433,7 @@ window.onload = function() {
         this.channelActive = nextChannel;
         this.channelListScroll(currentChannel, 'next');
         var activeChannel = document.querySelector('._channel.item-active');
-        //Player.prototype.channelMouseOver(activeChannel);
+        Player.prototype.channelMouseOver(activeChannel);
     };
 
     var channelContainerScroll = 0;
