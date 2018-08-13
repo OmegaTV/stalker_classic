@@ -118,7 +118,8 @@ mag.setMode = function(currentObj){ this.currentObj = currentObj;};
 
 mag.init = function () {
     mag.navigation = new Adapter();
-    mag.openPlayback();
+    mag.navigation.hidePlayback();
+    //mag.openPlayback();
 };
 
 
@@ -136,6 +137,7 @@ var instance = stbSurfaceManager.list[0];
 
 stbVideo.onPlayStart = function () {
     console.log('Video playback has begun.');
+    mag.openPlayback();
 };
 
 window.addEventListener('keydown', function ( event ) {
@@ -230,9 +232,7 @@ window.addEventListener('keydown', function ( event ) {
                     break;
                 case NAV_MENU_LEFT_CHANNELS :
                     mag.openEpgForChannels();
-                    setTimeout(function(){
-                        stalker.setActiveFirstEpgItem();
-                    },3000);
+                    stalker.setActiveFirstEpgItem();
                     break;
                 case(NAV_MENU_LEFT_PROGRAMS):
                     mag.openExtendedEpgForChannels();
@@ -500,7 +500,7 @@ window.onload = function() {
 mag.openPlayback = function(){
     mag.navigation.showPlayback();
     this.setPlayerPanelUpMode();
-    mag.navigation.setFocusOnPause();
+    //mag.navigation.setFocusOnPause();
 };
 
 mag.eventPanel = function(){

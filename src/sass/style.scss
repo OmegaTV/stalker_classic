@@ -37,6 +37,12 @@ body {
 }
 // ------>
 
+// <----- временно скрываем прогресбары в списке каналов
+.ch-item-progressbar-block {
+  display: none !important;
+}
+// ------>
+
 .video-controls_top .video-controls__item:hover,
 .video-controls_top .video-controls__item.active {
   background: #0f6fd0;
