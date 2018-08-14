@@ -120,6 +120,9 @@ function Navigation () {
     Adapter.apply(this, arguments);
 }
 Navigation.prototype = Object.create(Adapter.prototype);
+Navigation.prototype.selectChannel = function () {
+    stalker.selectChannel();
+};
 Navigation.prototype.watchEpg = function () {
     stalker.watchEpg();
 };
@@ -130,7 +133,7 @@ var navigation = new Navigation();
 
 mag.init = function () {
     navigation.hidePlayback();
-    //mag.openPlayback();
+    mag.openPlayback();
 };
 
 //наложение видео-контейнера и плейбека друг на друга
@@ -143,7 +146,7 @@ var instance = stbSurfaceManager.list[0];
 
 stbVideo.onPlayStart = function () {
     console.log('Video playback has begun.');
-    mag.openPlayback();
+    //mag.openPlayback();
 };
 
 window.addEventListener('keydown', function ( event ) {
@@ -486,6 +489,15 @@ window.onload = function() {
         }
         addClassCurrentItem(firstVisibleProgram);
         addClassActiveItem(firstVisibleProgram);
+    };
+
+    //переключаясь на другой канал убираем класс current-item у текущего сфокусированного канала из списка
+    Stalker.prototype.removeClassesBeforeSelectChannel = function () {
+        console.log("removeClassesBeforeSelectChannel");
+        var channels = document.querySelectorAll('.ch-item.current-item');
+        for (var i = 0; i < channels.length; i++) {
+            channels[i].className = channels[i].className.replace(/\bcurrent-item\b/g, "");
+        }
     };
 
     //убираем классы фокуса у текущего сфокусированного канала из списка
