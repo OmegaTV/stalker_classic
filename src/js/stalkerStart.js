@@ -1,6 +1,6 @@
 init = function () {
     Player.prototype.getM3UJson();
-    Stalker.prototype.loadEpg(Player.prototype.buildBasicEpgURL(getLanguage()));
+    Player.prototype.loadEpg(Player.prototype.buildBasicEpgURL(getLanguage()));
     document.getElementsByClassName('main-content')[0].classList.remove('hidden');
 };
 
@@ -116,16 +116,22 @@ mag.setPromoLineMode = function(){this.currentObj = NAV_PROMO_LINE;};
 /*setfocus last mode*/
 mag.setMode = function(currentObj){ this.currentObj = currentObj;};
 
+function Navigation () {
+    Adapter.apply(this, arguments);
+}
+Navigation.prototype = Object.create(Adapter.prototype);
+Navigation.prototype.watchEpg = function () {
+    stalker.watchEpg();
+};
+Navigation.prototype.returnFocusOnChannel = function () {
+    returnFocusOnChannel();
+};
+var navigation = new Navigation();
+
 mag.init = function () {
-    mag.navigation = new Adapter();
-    mag.navigation.hidePlayback();
+    navigation.hidePlayback();
     //mag.openPlayback();
 };
-
-
-// console.log(stbStorage.getItem('key'));
-// stbStorage.setItem('key', 123);
-// console.log(stbStorage.getItem('key'));
 
 //наложение видео-контейнера и плейбека друг на друга
 gSTB.SetTopWin(0);
@@ -155,17 +161,17 @@ window.addEventListener('keydown', function ( event ) {
                     mag.eventPanel();
                     break;
                 case NAV_MENU_LEFT_CHANNELS :
-                    mag.navigation.selectChannel();
-                    mag.navigation.removeFocusFromMenusIcons();
-                    mag.navigation.closeLeftMenu();
+                    navigation.selectChannel();
+                    navigation.removeFocusFromMenusIcons();
+                    navigation.closeLeftMenu();
                     mag.openPlayback();
                     break;
                 case(NAV_MENU_LEFT_INFO_PROGRAM_GALLERY):
-                    mag.navigation.setGalleryImg();
+                    navigation.setGalleryImg();
                     break;
                 case NAV_MENU_LEFT_CATEGORY :
-                    mag.navigation.setFirstChannelActive();
-                    mag.navigation.clearChannelScroll();
+                    navigation.setFirstChannelActive();
+                    navigation.clearChannelScroll();
                     mag.setChannelsMode();
                     stalker.channelActive = null;
                     break;
@@ -178,42 +184,42 @@ window.addEventListener('keydown', function ( event ) {
                     mag.focusMenuIcon();
                     break;
                 case NAV_PLAYER_PANEL_UP :
-                    mag.navigation.leftPlaybackItem();
+                    navigation.leftPlaybackItem();
                     break;
                 case NAV_PLAYER_PANEL_DOWN :
-                    mag.navigation.leftPlaybackItem();
+                    navigation.leftPlaybackItem();
                     break;
                 case NAV_MENU_LEFT_CHANNELS :
-                    mag.navigation.openCategories();
+                    navigation.openCategories();
                     mag.setCategoryMode();
                     break;
                 case(NAV_MENU_LEFT_PROGRAMS):
-                    mag.navigation.hideEpgsBlocks();
+                    navigation.hideEpgsBlocks();
                     mag.setChannelsMode();
-                    mag.navigation.returnFocusOnChannel();
+                    navigation.returnFocusOnChannel();
                     break;
                 case(NAV_MENU_LEFT_INFO_PROGRAM):
-                    mag.navigation.closeExtendedEpg();
+                    navigation.closeExtendedEpg();
                     mag.setProgramsMode();
                     break;
                 case(NAV_MENU_LEFT_INFO_PROGRAM_GALLERY):
-                    console.log("ifFirstGalleryImg Prev", mag.navigation.ifFirstGalleryImg());
-                    if(mag.navigation.ifFirstGalleryImg()){
-                        mag.navigation.removeFocusFromGallery();
-                        mag.navigation.closeExtendedEpg();
+                    console.log("ifFirstGalleryImg Prev", navigation.ifFirstGalleryImg());
+                    if(navigation.ifFirstGalleryImg()){
+                        navigation.removeFocusFromGallery();
+                        navigation.closeExtendedEpg();
                         mag.setProgramsMode();
                     }
-                    else if(mag.navigation.ifFocusOnGallery()){
-                        mag.navigation.prevGalleryImg();
+                    else if(navigation.ifFocusOnGallery()){
+                        navigation.prevGalleryImg();
                     }
                     else{
-                        mag.navigation.closeExtendedEpg();
+                        navigation.closeExtendedEpg();
                         mag.setProgramsMode();
                     }
                     break;
                 case(NAV_MENU_LEFT_INFO_PROGRAM_TEXT):
-                    mag.navigation.removeFocusFromAboutText();
-                    mag.navigation.closeExtendedEpg();
+                    navigation.removeFocusFromAboutText();
+                    navigation.closeExtendedEpg();
                     mag.setProgramsMode();
                     break;
             }
@@ -225,10 +231,10 @@ window.addEventListener('keydown', function ( event ) {
                     mag.focusMenuIcon();
                     break;
                 case NAV_PLAYER_PANEL_UP :
-                    mag.navigation.rightPlaybackItem();
+                    navigation.rightPlaybackItem();
                     break;
                 case NAV_PLAYER_PANEL_DOWN :
-                    mag.navigation.rightPlaybackItem();
+                    navigation.rightPlaybackItem();
                     break;
                 case NAV_MENU_LEFT_CHANNELS :
                     mag.openEpgForChannels();
@@ -238,23 +244,23 @@ window.addEventListener('keydown', function ( event ) {
                     mag.openExtendedEpgForChannels();
                     break;
                 case(NAV_MENU_LEFT_INFO_PROGRAM):
-                    if(mag.navigation.ifHasGallery()){
-                        mag.navigation.setFocusOnGallery();
+                    if(navigation.ifHasGallery()){
+                        navigation.setFocusOnGallery();
                         mag.setInfoProgramGalleryMode();
                     }
-                    else if(mag.navigation.ifHasAboutText()){
-                        mag.navigation.setFocusOnAboutText();
+                    else if(navigation.ifHasAboutText()){
+                        navigation.setFocusOnAboutText();
                         mag.setInfoProgramTextMode();
                     }
                     break;
                 case(NAV_MENU_LEFT_INFO_PROGRAM_GALLERY):
-                    if(mag.navigation.ifFocusOnGallery()){
-                        mag.navigation.nextGalleryImg();
+                    if(navigation.ifFocusOnGallery()){
+                        navigation.nextGalleryImg();
                     }
                     break;
                 case NAV_MENU_LEFT_CATEGORY :
-                    mag.navigation.setFirstChannelActive();
-                    mag.navigation.clearChannelScroll();
+                    navigation.setFirstChannelActive();
+                    navigation.clearChannelScroll();
                     mag.setChannelsMode();
                     var elems = document.querySelectorAll(".item-active");
                     console.log(elems.length);
@@ -270,11 +276,11 @@ window.addEventListener('keydown', function ( event ) {
             switch (mag.currentObj) {
                 case NAV_PLAYER_PANEL_UP :
                     mag.setMenuIconsMode();
-                    mag.navigation.checkActiveInPlaybackTop();
-                    mag.navigation.removeFocusFromPlayback();
+                    navigation.checkActiveInPlaybackTop();
+                    navigation.removeFocusFromPlayback();
                     break;
                 case NAV_PLAYER_PANEL_DOWN :
-                    mag.navigation.upPlaybackItem();
+                    navigation.upPlaybackItem();
                     mag.setPlayerPanelUpMode();
                     break;
                 case NAV_MENU_LEFT_CHANNELS :
@@ -282,19 +288,19 @@ window.addEventListener('keydown', function ( event ) {
                     break;
                 case NAV_MENU_LEFT_PROGRAMS :
                     console.log('epg-up');
-                    mag.navigation.prevEpginList();
+                    navigation.prevEpginList();
                     break;
                 case(NAV_MENU_LEFT_INFO_PROGRAM_TEXT):
-                    if(mag.navigation.ifAboutTextNotScroll()){
-                        mag.navigation.removeFocusFromAboutText();
+                    if(navigation.ifAboutTextNotScroll()){
+                        navigation.removeFocusFromAboutText();
                         mag.setInfoProgramGalleryMode();
-                        mag.navigation.setFocusOnGallery();
+                        navigation.setFocusOnGallery();
                     } else{
-                        mag.navigation.scrollUpAboutText();
+                        navigation.scrollUpAboutText();
                     }
                     break;
                 case NAV_MENU_LEFT_CATEGORY :
-                    mag.navigation.prevCategoryInList();
+                    navigation.prevCategoryInList();
                     mag.selecCategoryFocus();
                     break;
             }
@@ -303,13 +309,13 @@ window.addEventListener('keydown', function ( event ) {
             console.log('down');
             switch (mag.currentObj) {
                 case NAV_MENU_ICON :
-                    mag.navigation.removeFocusFromMenusIcons();
-                    mag.navigation.showPlayback();
+                    navigation.removeFocusFromMenusIcons();
+                    navigation.showPlayback();
                     mag.setPlayerPanelUpMode();
-                    mag.navigation.setFocusOnPause();
+                    navigation.setFocusOnPause();
                     break;
                 case NAV_PLAYER_PANEL_UP :
-                    mag.navigation.downPlaybackItem();
+                    navigation.downPlaybackItem();
                     mag.setPlayerPanelDownMode();
                     break;
                 case NAV_MENU_LEFT_CHANNELS :
@@ -317,20 +323,20 @@ window.addEventListener('keydown', function ( event ) {
                     break;
                 case NAV_MENU_LEFT_PROGRAMS :
                     console.log('epg-down');
-                    mag.navigation.nextEpginList();
+                    navigation.nextEpginList();
                     break;
                 case(NAV_MENU_LEFT_INFO_PROGRAM_GALLERY):
-                    if(mag.navigation.ifHasAboutText()){
-                        mag.navigation.removeFocusFromGallery();
-                        mag.navigation.setFocusOnAboutText();
+                    if(navigation.ifHasAboutText()){
+                        navigation.removeFocusFromGallery();
+                        navigation.setFocusOnAboutText();
                         mag.setInfoProgramTextMode();
                     }
                     break;
                 case(NAV_MENU_LEFT_INFO_PROGRAM_TEXT):
-                    mag.navigation.scrollDownAboutText();
+                    navigation.scrollDownAboutText();
                     break;
                 case NAV_MENU_LEFT_CATEGORY :
-                    mag.navigation.nextCategoryInList();
+                    navigation.nextCategoryInList();
                     mag.selecCategoryFocus();
                     break;
             }
@@ -371,26 +377,26 @@ window.onload = function() {
     };
 
     //  Обрабатываем JSON с epg
-    Stalker.prototype.loadEpg = function (url, callback) {
-        console.log('stalker.loadEpg');
-        var self = this;
-        var xhr = new XMLHttpRequest();
-        xhr.open('GET', url, true);
-        //xhr.responseType = "json";
-        xhr.onload = function() {
-            epg.store(JSON.parse(this.responseText));
-            if(xhr.readyState == 4 && xhr.status === 200) {
-                if (callback) {
-                    callback();
-                }
-                self.initRename();
-            }
-        };
-        xhr.onerror = function() {
-            console.log( 'Ошибка ' + this.status );
-        };
-        xhr.send();
-    };
+    // Stalker.prototype.loadEpg = function (url, callback) {
+    //     console.log('stalker.loadEpg');
+    //     var self = this;
+    //     var xhr = new XMLHttpRequest();
+    //     xhr.open('GET', url, true);
+    //     //xhr.responseType = "json";
+    //     xhr.onload = function() {
+    //         epg.store(JSON.parse(this.responseText));
+    //         if(xhr.readyState == 4 && xhr.status === 200) {
+    //             if (callback) {
+    //                 callback();
+    //             }
+    //             self.initRename();
+    //         }
+    //     };
+    //     xhr.onerror = function() {
+    //         console.log( 'Ошибка ' + this.status );
+    //     };
+    //     xhr.send();
+    // };
 
     //листаем список каналов вверх
     Stalker.prototype.prevChannelInList = function () {
@@ -482,6 +488,15 @@ window.onload = function() {
         addClassActiveItem(firstVisibleProgram);
     };
 
+    //убираем классы фокуса у текущего сфокусированного канала из списка
+    Stalker.prototype.removeClassesBeforeEpg = function () {
+        var channels = document.querySelectorAll('.ch-item.item-active');
+        for (var i = 0; i < channels.length; i++) {
+            channels[i].className = channels[i].className.replace(/\bchannel-item_active\b/g, "");
+            channels[i].className = channels[i].className.replace(/\bitem-active\b/g, "");
+        }
+    };
+
     stalker = new Stalker();
     Stalker.prototype.constructor = Stalker;
     stalker.toggleVolume();
@@ -498,30 +513,30 @@ window.onload = function() {
 };
 
 mag.openPlayback = function(){
-    mag.navigation.showPlayback();
+    navigation.showPlayback();
     this.setPlayerPanelUpMode();
-    //mag.navigation.setFocusOnPause();
+    navigation.setFocusOnPause();
 };
 
 mag.eventPanel = function(){
-    switch(mag.navigation.getFocusedPlaybackItem()){
+    switch(navigation.getFocusedPlaybackItem()){
         case("play-pause-btn"):
             stalker.playOrPause();
             break;
         case("btn-previous"):
-            mag.navigation.prevChannel();
+            navigation.prevChannel();
             break;
         case("btn-next"):
-            mag.navigation.nextChannel();
+            navigation.nextChannel();
             break;
         case("fullscreen-btn"):
-            mag.navigation.fullScreenMode();
+            navigation.fullScreenMode();
             break;
         case("volume-btn"):
-            mag.navigation.toggleVolume();
+            navigation.toggleVolume();
             break;
         case("fav-btn"):
-            mag.navigation.toggleFavorites();
+            navigation.toggleFavorites();
             break;
         case("block-btn"):
             mag.openPopup("panel");
@@ -530,14 +545,14 @@ mag.eventPanel = function(){
 };
 
 mag.focusMenuIcon = function(){
-    switch(mag.navigation.getFocusedMenuIcon()){
+    switch(navigation.getFocusedMenuIcon()){
         case("main-menu"):
-            mag.navigation.removeFocusFromMenusIcons();
-            mag.navigation.setFocusOnHomeIcon();
+            navigation.removeFocusFromMenusIcons();
+            navigation.setFocusOnHomeIcon();
             break;
         case("home-menu"):
-            mag.navigation.removeFocusFromMenusIcons();
-            mag.navigation.setFocusOnHamburgerIcon();
+            navigation.removeFocusFromMenusIcons();
+            navigation.setFocusOnHamburgerIcon();
             break;
         default:
             break;
@@ -545,14 +560,14 @@ mag.focusMenuIcon = function(){
 };
 
 mag.openMenu = function(){
-    switch(mag.navigation.getFocusedMenuIcon()){
+    switch(navigation.getFocusedMenuIcon()){
         case("main-menu"):
-            mag.navigation.openLeftMenu();
-            mag.navigation.clearChannelScroll();
+            navigation.openLeftMenu();
+            navigation.clearChannelScroll();
             mag.setChannelsMode();
             break;
         case("home-menu"):
-            mag.navigation.openRightMenu();
+            navigation.openRightMenu();
             mag.setSettingsMode();
             break;
         default:
@@ -561,30 +576,30 @@ mag.openMenu = function(){
 };
 
 mag.openEpgForChannels = function(){
-    //if(mag.navigation.ifHasEpg()){
-    mag.navigation.closeCategories();
-    //mag.navigation.saveSelectedChannelId();                         //вернуть когда будет вмерджена ветка с обработкой ошибок xhr-запросов!!!
-    mag.navigation.watchEpg(function(){
+    //if(navigation.ifHasEpg()){
+    navigation.closeCategories();
+    //navigation.saveSelectedChannelId();                         //вернуть когда будет вмерджена ветка с обработкой ошибок xhr-запросов!!!
+    navigation.watchEpg(function(){
         mag.setErrorHandlerEpgMode();
-        //mag.navigation.setFocusOnErrorPopup();                        //вернуть когда будет вмерджена ветка с обработкой ошибок xhr-запросов!!!
+        //navigation.setFocusOnErrorPopup();                        //вернуть когда будет вмерджена ветка с обработкой ошибок xhr-запросов!!!
     });
-    mag.navigation.clearEpgScroll();
+    navigation.clearEpgScroll();
     mag.setProgramsMode();
     //}
 };
 
 mag.openExtendedEpgForChannels = function(){
-    if(mag.navigation.ifHasExtendedEpg()){
-        mag.navigation.watchExtendedEpg(null,function(){
+    if(navigation.ifHasExtendedEpg()){
+        navigation.watchExtendedEpg(null,function(){
             mag.setErrorHandlerExtEpgMode();
-            //mag.navigation.setFocusOnErrorPopup();                         //вернуть когда будет вмерджена ветка с обработкой ошибок xhr-запросов!!!
+            //navigation.setFocusOnErrorPopup();                         //вернуть когда будет вмерджена ветка с обработкой ошибок xhr-запросов!!!
         });
         mag.setInfoProgramMode();
     }
 };
 
 mag.selecCategoryFocus = function(){
-    switch(mag.navigation.getFocusedCategory()){
+    switch(navigation.getFocusedCategory()){
         case("blocked"):
             //mag.openPopup("category");
             break;
