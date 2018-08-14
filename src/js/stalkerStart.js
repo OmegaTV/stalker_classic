@@ -123,6 +123,9 @@ Navigation.prototype = Object.create(Adapter.prototype);
 Navigation.prototype.selectChannel = function () {
     stalker.selectChannel();
 };
+Navigation.prototype.openCategories = function () {
+    stalker.openCategories();
+};
 Navigation.prototype.watchEpg = function () {
     stalker.watchEpg();
 };
@@ -476,6 +479,31 @@ window.onload = function() {
             }
         }
     };
+
+    Stalker.prototype.openCategories = function () {
+        // var elems = document.querySelectorAll("._render_epg_btn");
+        // console.log(elems.length);
+        // for (var i = 0; i< elems.length; i++) {
+        //     elems[i].classList.add("hidden");
+        // }
+        elems = document.querySelectorAll(".categories-container, .block-with-arrows");
+        for (var i = 0; i< elems.length; i++) {
+            elems[i].classList.remove("hidden");
+        }
+        var arrow = document.getElementsByClassName("main-menu-header-arrow-container")[0];
+        arrow.className = arrow.className.replace(/\bmirror-vertical\b/g, "");
+        //Проверить работу этого при манипуляциях с блокировкой каналов ======>
+        if (!document.getElementsByClassName("category-item-container current-item")[0]) {
+            document.getElementsByClassName("_category_all")[0].classList.add("current-item");
+        }
+        // <=======
+        document.getElementsByClassName("category-item-container current-item")[0].classList.add("item-active");
+        document.getElementById('arrows-container').classList.add("block-with-arrows_55vw");
+        document.getElementById('main-menu').classList.add("_open_categories");
+        var elem = document.getElementsByClassName("ch-item item-active")[0];
+        elem.className = elem.className.replace(/\bitem-active\b/g, "");
+        setWidth("main-menu", 55);
+    }
 
     //ставим фиолетовый фокус на первый достпный элемент из списка Епг
     Stalker.prototype.setActiveFirstEpgItem = function () {
