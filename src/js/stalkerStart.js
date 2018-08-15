@@ -3,7 +3,7 @@ init = function () {
     Player.prototype.loadEpg(Player.prototype.buildBasicEpgURL(getLanguage()));
     document.getElementsByClassName('main-content')[0].classList.remove('hidden');
 };
-
+var AUTH_URL = 'https://cdnua01.hls.tv/v3/hlsclient/auth';
 //переопределить потом в epg.js
 // store: function (epg) {
 //     console.log('STORE-EPG');
@@ -79,7 +79,9 @@ var NAV_ERORR_HANDLER_EXT_EPG = "error_handler_ext_epg";
 var NAV_PROMO_LINE = "promo_line";
 
 var mag = {
-    currentObj:NAV_APP
+    currentObj:NAV_APP,
+    focusInputActivateCode:false,
+    idMenuIcon:false
 };
 mag.setAppMode = function() {this.currentObj = NAV_APP;};
 /*focus menu icons*/
@@ -136,7 +138,16 @@ var navigation = new Navigation();
 
 mag.init = function () {
     navigation.hidePlayback();
-    mag.openPlayback();
+    var tvType = 'Mag';
+    Auth.prototype.clientAuthorization(null, function () {
+        if (navigation.ifActivationMode()) {
+            mag.authorization();
+        } else {
+            mag.openPlayback();
+        }
+        return tvType;
+    });
+    //mag.openPlayback();
 };
 
 //наложение видео-контейнера и плейбека друг на друга
@@ -157,6 +168,14 @@ window.addEventListener('keydown', function ( event ) {
         case 13: //enter
             console.log('enter');
             switch (mag.currentObj) {
+                case NAV_AUTHORIZATION :
+                    mag.focusElementActivation();
+                    break;
+                case NAV_CONTENT :
+                    navigation.showPlayback();
+                    mag.setPlayerPanelUpMode();
+                    navigation.setFocusOnPause();
+                    break;
                 case NAV_MENU_ICON :
                     mag.openMenu();
                     break;
@@ -181,11 +200,94 @@ window.addEventListener('keydown', function ( event ) {
                     mag.setChannelsMode();
                     stalker.channelActive = null;
                     break;
+                case(NAV_PROMO_LINE):
+                    navigation.removeFocusFromPromoLine();
+                    if(navigation.ifPausedPromo()){
+                        navigation.setFocusOnActivationWatchPromo();
+                    }else{
+                        navigation.setFocusOnActivationInput();
+                    }
+                    navigation.showAuthorizationPopup();
+                    mag.setAuthorizationMode();
+                    break;
+            }
+            break;
+        case 27:
+        case 8:
+            console.log('back');
+            switch (mag.currentObj) {
+                case NAV_PROMO_LINE :
+                    navigation.hidePlayback();
+                    mag.setContentMode();
+                    navigation.removeFocusFromPromoLine();
+                    break;
+                case NAV_MENU_LEFT_CATEGORY :
+                case NAV_MENU_ICON :
+                    navigation.hidePlayback();
+                    navigation.removeFocusFromMenusIcons();
+                    navigation.closeLeftMenu();
+                    mag.setContentMode();
+                    break;
+                case(NAV_PLAYER_PANEL_UP):
+                    navigation.hidePlayback();
+                    mag.setContentMode();
+                    navigation.removeFocusFromPlayback();
+                    break;
+                case(NAV_PLAYER_PANEL_DOWN):
+                    navigation.hidePlayback();
+                    mag.setContentMode();
+                    navigation.removeFocusFromPlayback();
+                    break;
+                case(NAV_MENU_LEFT_CHANNELS):
+                    mag.setContentMode();
+                    navigation.hidePlayback();
+                    navigation.removeFocusFromMenusIcons();
+                    navigation.closeLeftMenu();
+                    navigation.clearChannelScroll();
+                    break;
+                case(NAV_MENU_LEFT_PROGRAMS):
+                    navigation.hidePlayback();
+                    navigation.removeFocusFromMenusIcons();
+                    navigation.closeLeftMenu();
+                    mag.setContentMode();
+                    break;
+                case(NAV_MENU_LEFT_INFO_PROGRAM):
+                    navigation.hidePlayback();
+                    navigation.removeFocusFromMenusIcons();
+                    navigation.closeLeftMenu();
+                    mag.setContentMode();
+                    break;
+                case(NAV_MENU_LEFT_INFO_PROGRAM_GALLERY):
+                    navigation.hidePlayback();
+                    navigation.removeFocusFromMenusIcons();
+                    navigation.closeLeftMenu();
+                    mag.setContentMode();
+                    break;
+                case(NAV_MENU_LEFT_INFO_PROGRAM_TEXT):
+                    navigation.hidePlayback();
+                    navigation.removeFocusFromMenusIcons();
+                    navigation.closeLeftMenu();
+                    mag.setContentMode();
+                    navigation.removeFocusFromAboutText();
+                    break;
             }
             break;
         case 37: //left-button
             console.log('left');
             switch (mag.currentObj) {
+                case NAV_AUTHORIZATION:
+                    if(!navigation.getAuthError()){
+                        if(!mag.focusInputActivateCode && !navigation.ifFocusOnWatchPromo()){
+                            navigation.setFocusOnActivationInput();
+                        }
+                    }
+                    else{
+                        navigation.setFocusOnActivationRetry();
+                    }
+                    break;
+                case(NAV_CONTENT):
+                    mag.menu("LEFT");
+                    break;
                 case NAV_MENU_ICON :
                     mag.focusMenuIcon();
                     break;
@@ -233,6 +335,20 @@ window.addEventListener('keydown', function ( event ) {
         case 39: // right-button
             console.log('right');
             switch (mag.currentObj) {
+                case NAV_AUTHORIZATION:
+                    if(!navigation.getAuthError()){
+                        if(mag.focusInputActivateCode){
+                            document.getElementById(mag.focusInputActivateCode).blur();
+                            mag.focusInputActivateCode = false;
+                        }
+                        if(!navigation.ifFocusOnWatchPromo()){
+                            navigation.setFocusOnActivationBtn();
+                        }
+                    }
+                    else{
+                        navigation.setFocusOnActivationClose();
+                    }
+                    break;
                 case NAV_MENU_ICON :
                     mag.focusMenuIcon();
                     break;
@@ -280,6 +396,28 @@ window.addEventListener('keydown', function ( event ) {
         case 38: // up-button
             console.log('up');
             switch (mag.currentObj) {
+                case NAV_AUTHORIZATION :
+                    if(!navigation.getAuthError()){
+                        if(!mag.focusInputActivateCode && navigation.ifFocusOnWatchPromo()){
+                            if(!navigation.ifPausedPromo()){
+                                navigation.setFocusOnActivationInput();
+                            }
+                        }
+                    }
+                    break;
+                case NAV_CONTENT :
+                    if(!navigation.getPlaybackPanelStatus()){
+                        navigation.prevChannel();
+                    }
+                    break;
+                case NAV_MENU_ICON :
+                    if(navigation.ifPromoLineExist()){
+                        mag.idMenuIcon = navigation.getFocusedMenuIcon();
+                        mag.setPromoLineMode();
+                        navigation.setFocusOnPromoLine();
+                        navigation.removeFocusFromMenusIcons();
+                    }
+                    break;
                 case NAV_PLAYER_PANEL_UP :
                     mag.setMenuIconsMode();
                     navigation.checkActiveInPlaybackTop();
@@ -314,6 +452,21 @@ window.addEventListener('keydown', function ( event ) {
         case 40: // down-button
             console.log('down');
             switch (mag.currentObj) {
+                case NAV_AUTHORIZATION :
+                    if(!navigation.getAuthError() && !navigation.ifFocusOnWatchPromo()){
+                        navigation.setFocusOnActivationWatchPromo();
+                    }
+                    break;
+                case(NAV_CONTENT):
+                    if(!navigation.getPlaybackPanelStatus()){
+                        navigation.nextChannel();
+                    }
+                    else{
+                        navigation.showPlayback();
+                        mag.setPlayerPanelUpMode();
+                        navigation.setFocusOnPause();
+                    }
+                    break;
                 case NAV_MENU_ICON :
                     navigation.removeFocusFromMenusIcons();
                     navigation.showPlayback();
@@ -328,7 +481,6 @@ window.addEventListener('keydown', function ( event ) {
                     stalker.nextChannelInList();
                     break;
                 case NAV_MENU_LEFT_PROGRAMS :
-                    console.log('epg-down');
                     navigation.nextEpginList();
                     break;
                 case(NAV_MENU_LEFT_INFO_PROGRAM_GALLERY):
@@ -345,6 +497,21 @@ window.addEventListener('keydown', function ( event ) {
                     navigation.nextCategoryInList();
                     mag.selecCategoryFocus();
                     break;
+                case NAV_PROMO_LINE :
+                    mag.setMenuIconsMode();
+                    navigation.removeFocusFromPromoLine();
+                    switch(mag.idMenuIcon){
+                        case("main-menu"):
+                            navigation.setFocusOnHamburgerIcon();
+                            break;
+                        case("home-menu"):
+                            navigation.setFocusOnHomeIcon();
+                            break;
+                        default:
+                            break;
+                    }
+                    mag.idMenuIcon = false;
+                    break;
             }
             break;
         case 89: //info
@@ -360,7 +527,6 @@ window.addEventListener('keydown', function ( event ) {
 });
 
 window.onload = function() {
-    console.log(document.body.clientWidth);
     function Stalker() {
         this.channelActive = null;
         Player.apply(this, arguments);
@@ -521,7 +687,6 @@ window.onload = function() {
 
     //переключаясь на другой канал убираем класс current-item у текущего сфокусированного канала из списка
     Stalker.prototype.removeClassesBeforeSelectChannel = function () {
-        console.log("removeClassesBeforeSelectChannel");
         var channels = document.querySelectorAll('.ch-item.current-item');
         for (var i = 0; i < channels.length; i++) {
             channels[i].className = channels[i].className.replace(/\bcurrent-item\b/g, "");
@@ -544,12 +709,62 @@ window.onload = function() {
     volumeBtn.classList.remove('_active_btn');                                  //скрываем кнопку звука
     volumeBtn.classList.add('video-controls__item_disabled');                   //скрываем кнопку звука
 
-    auth.clientAuthorization(null, function () {
-        var tvType = 'WebOSLG';
-        return tvType;
-    });
+    // auth.clientAuthorization(null, function () {
+    //     var tvType = 'Mag';
+    //     return tvType;
+    // });
 
     mag.init();
+};
+
+mag.authorization = function(){
+    mag.setAuthorizationMode();
+    console.log('navigation.getAuthError():');
+    console.log(navigation.getAuthError());
+    if(!navigation.getAuthError()){
+        if(navigation.ifPausedPromo()){
+            console.log('paused_promo');
+            navigation.setFocusOnActivationWatchPromo();
+        }else{
+            console.log('not paused_promo');
+            navigation.setFocusOnActivationInput();
+        }
+    }else{
+        console.log('error in auth');
+        navigation.setFocusOnActivationRetry();
+    }
+};
+
+mag.focusElementActivation = function(){
+    switch(navigation.getFocusedElemInActivation()){
+        case("activation-code"):
+            mag.focusInputActivateCode = navigation.getFocusedActivationInputId();
+            document.getElementById(mag.focusInputActivateCode).focus();
+            break;
+        case("activation-btn"):
+            navigation.activateTariff(function(){
+                if(!navigation.ifActivationMode()){
+                    mag.openPlayback();
+                }
+                var tvType = 'Mag';
+                return tvType;
+            });
+            break;
+        case("watch-promo-btn"):
+            navigation.watchPromo();
+            mag.openPlayback();
+            break;
+        case("retry-btn"):
+            navigation.retryAuth(function(){
+                mag.authorization();
+                var tvType = 'Mag';
+                return tvType;
+            });
+            break;
+        case("close-app-btn"):
+            console.log("exit from app");
+            break;
+    }
 };
 
 mag.openPlayback = function(){
@@ -611,6 +826,31 @@ mag.openMenu = function(){
             mag.setSettingsMode();
             break;
         default:
+            break;
+    }
+};
+
+mag.menu = function(event){
+    switch(event){
+        case("LEFT"):
+            navigation.setFocusOnHamburgerIcon();
+            if(!navigation.getPlaybackPanelStatus()){
+                mag.openMenu();
+            }
+            else{
+                mag.setMenuIconsMode();
+                navigation.showPlayback();
+            }
+            break;
+        case("RIGHT"):
+            navigation.setFocusOnHomeIcon();
+            if(!navigation.getPlaybackPanelStatus()){
+                mag.openMenu();
+            }
+            else{
+                mag.setMenuIconsMode();
+                navigation.showPlayback();
+            }
             break;
     }
 };

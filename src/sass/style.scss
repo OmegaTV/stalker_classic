@@ -1,6 +1,21 @@
 body {
   background-color: transparent !important;
 }
+
+
+//activation modal
+.activation-modal {
+  height: 720px !important;
+  background-color: #001;
+}
+.error-btns:not(.hidden) {
+  display: block !important;
+}
+.activation-modal__header {
+  height: 50px;
+}
+
+
 .main-menu {
   background-color: transparent !important;
   background-image: url('../images/transparent.png');
