@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>OmegaTV</title>
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" >
+        <meta name="description" content="OmegaTV WebPlayer">
+        <meta name="author" content="OmegaTV DevTeam">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-status-bar-style" content="black">
+
+        <!-- Favicons -->
+        <!--<link rel="shortcut icon" href="images/favicon.png" >-->
+
+        <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+        <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+        <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js?v=bff5dfd2dc123faca233cb9d866bbc17"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js?v=bff5dfd2dc123faca233cb9d866bbc17"></script>
+        <![endif]-->
+        <!-- build:webapisjs -->
+        <!-- endbuild -->
+
+        <!-- Custom CSS -->
+        <link rel="stylesheet" href="css/style.css?v=bff5dfd2dc123faca233cb9d866bbc17" />
+
+        <meta name="web-app-title" content="OmegaTV">
+        <link rel="icon" href="images/favicons/Icon-App-76x76@1x.png" type="image/png">
+        <link rel="icon" href="images/favicons/Icon-App-20x20@1x.png">
+        <link rel="icon" sizes="29x29" href="images/favicons/Icon-App-29x29@1x.png">
+        <link rel="icon" sizes="40x40" href="images/favicons/Icon-App-40x40@1x.png">
+        <link rel="icon" sizes="50x50" href="images/favicons/Icon-Small-50x50@1x.png">
+        <link rel="icon" sizes="57x57" href="images/favicons/Icon-App-57x57@1x.png">
+        <link rel="icon" sizes="60x60" href="images/favicons/Icon-App-60x60@1x.png">
+        <link rel="icon" sizes="72x72" href="images/favicons/Icon-App-72x72@1x.png">
+        <link rel="icon" sizes="76x76" href="images/favicons/Icon-App-76x76@1x.png">
+    </head>
+    <body>
+        <div id="activation-modal" class="activation-modal hidden">
+            <div class="activation-modal__header header-container">
+                <div id="activation-modal-title" class="header-container__text" loc="tariff_plan_activation"></div>
+                <div id="activation-modal-error" class="header-container__text hidden" loc="error"></div>
+                <div class="separator"></div>
+            </div>
+            <div class="activation-modal__content auth-content-container">
+                <div class="auth-content-container__item auth-content-container__error-text error-modal-text hidden">
+                    <span id="error-modal-text" class="error-modal-text__item"></span>
+                </div>
+                <div class="auth-content-container__item auth-content-container__clients-info clients-info hidden">
+                    <span class="clients-info__row-name">Uniq: </span>
+                    <span class="clients-info__row-value" id="cliens-uniq"></span>
+                </div>
+                <div id="days-to-end-promo" class="auth-content-container__item auth-content-container__notifications modal-notifications">
+                    <span class="modal-notifications__text-item" loc="until_end_promo"></span>
+                    <span id="days-left" class="modal-notifications__text-item"></span>
+                    <span class="modal-notifications__text-item" loc="days"></span>
+                    <!--<div class="modal-notifications__text-item" loc="for_activation_tariff"></div>-->
+                </div>
+        
+                <div id="activation-tariff-text" class="content-container__item content-container__notifications modal-notifications">
+                    <div class="modal-notifications__text-item" loc="for_activation_tariff"></div>
+                </div>
+                <div id="service-is-stopped" class="content-container__item content-container__notifications modal-notifications hidden">
+                    <div class="modal-notifications__text-item" loc="service_is_stopped">Действие услуги приостановлено. Обратитесь к вашему оператору для продление услуги</div>
+                </div>
+        
+                <div id="activation-code-row" class="auth-content-container__item auth-content-container__activation-code activation-code-container input-row">
+                    <div class="activation-code-container__input">
+                        <input id="activation-code" placeholder="Enter activation code" maxlength="4" loc="enter_activation_code">
+                    </div>
+                    <div id="activation-btn" class="activation-code-container__btn activation-modal-btn">
+                        <span loc="activate"></span>
+                    </div>
+                    <div class="input-alert activation-code-container__alert _input_alert hidden"></div>
+                </div>
+                <div class="auth-content-container__item auth-content-container__error-btns error-btns hidden"> 
+                    <div id="retry-btn" class="error-btns__item error-btns__item-left activation-modal-btn">
+                        <span loc="retry_btn"></span>
+                    </div>
+                    <div id="close-app-btn" class="error-btns__item activation-modal-btn">
+                        <span loc="close_app_btn"></span>
+                    </div>
+                </div>
+                <div class="auth-content-container__item auth-content-container__operator-info operator-info">
+                    <div id="company-name" class="operator-info__item"></div>
+                    <div id="company-phone" class="operator-info__item"></div>
+                    <div id="company-url" class="operator-info__item"></div>
+                </div>
+                <div class="separator"></div>
+                <div class="auth-content-container__item auth-content-container__watch-promo" >
+                    <div id="watch-promo-btn" class="watch-promo__btn activation-modal-btn">
+                        <span loc="see_promo"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="promo-line" class="promo-line hidden">
+            <span class="promo-line__text _big_promo" loc="until_end_promo"></span>
+            <span id="promo-days-left" class="promo-line__days-left promo-line__text _big_promo">0</span>
+            <span class="promo-line__text _big_promo" loc="days"></span>
+            <span class="promo-line__text _small_promo" loc="promo_line_small_promo"></span>
+        </div>
+        <div class="main-content hidden">
+            <div id='video-container' class="video-container shadowed">
+                <!-- build:videotag -->
+                <video id="video" class="video" preload="auto" playsinline autoplay muted></video>
+                <!-- endbuild -->
+            </div>
+            <div id='errors-container' class="errors-container hidden">
+                <div class="errors-img-container">
+                    <img id='error-img' class="errors-img-container__img _error_img" src="">
+                </div>
+                <div class="errors-text _errors-text _playlist_error hidden" loc="playlist_error"></div>
+                <div class="errors-text _errors-text _channel_error hidden" loc="channel_error"></div>
+                <div class="errors-text _errors-text _blocked_error hidden" loc="blocked_error"></div>
+                <div class="errors-text _errors-text _internet_error hidden" loc="internet_error"></div>
+            </div>
+            <div id='header' class="header">
+                <div id='hamburger' class="hamburger _hamburger">
+                    <img class="hamburger__icon" src="images/icons/main_menu-icon.png?v=bff5dfd2dc123faca233cb9d866bbc17">
+                </div>
+                <div id='current-channel' class="current-channel hidden">
+                    <div class="current-channel__img-container">
+                        <img id='current-ch-logo' class="current-channel__img _ch_logo" src="">
+                    </div>
+                    <div class="video-description">
+                        <span id='current-ch-number' class="video-description__number _ch_number"></span>
+                        <span id='current-ch-name' class="video-description__channel-name _ch_name"></span>
+                        <span id='current-ch-category' class="video-description__channel-category _ch_category"></span>
+                        <div id='current-ch-program' class="video-description_current-program _prog_name cropper"></div>
+                    </div>
+                </div>
+                <div id='header-home-menu' class="header-home-menu">
+                    <img class="home-menu__icon" src="images/icons/home_menu-icon.png?v=bff5dfd2dc123faca233cb9d866bbc17">
+                </div>
+            </div>
+
+            <div id='all-controls-container' class="all-controls-container">
+                <div class="video-controls video-progressbar">
+                    <div class="video-progressbar__progressbar-block _video_progressbar_item">
+                        <input type="range" min="0" max="100" step="0.1" value="0" id='_video_progressbar' class="video-progressbar__progressbar _video_progressbar" disabled>
+                    </div>
+                    <span id='playback-time' class='video-progressbar__time _playback_time _video_progressbar_item'>00:00</span>
+                    <span id='duration-time' class='video-progressbar__time video-progressbar__time_end _duration_time _video_progressbar_item'>00:00</span>
+                </div>
+                <div class="video-controls video-controls_violet">
+                    <div class="video-controls-container video-controls_top">
+                        <div id='btn-previous' class="video-controls__item _ctrl-row1 _active_btn">
+                            <img class="video-controls__item_size1" src="images/icons/play-previous-button.png?v=bff5dfd2dc123faca233cb9d866bbc17">
+                        </div>
+                        <div class="video-controls__item video-controls__item_disabled _ctrl-row1">
+                            <img class="video-controls__item_size2" src="images/icons/fast-backward-button.png?v=bff5dfd2dc123faca233cb9d866bbc17">
+                        </div>
+                        <div id="play-pause-btn" class="video-controls__item video-controls__item_play-pause _ctrl-row1 _active_btn">
+                            <img id="play-pause-btn-img" class="video-controls__item_size3 _play_pause_img" src="images/icons/pause-button.png?v=bff5dfd2dc123faca233cb9d866bbc17">
+                        </div>
+                        <div class="video-controls__item video-controls__item_disabled _ctrl-row1">
+                            <img class="video-controls__item_size2" src="images/icons/fast-forward-button.png?v=bff5dfd2dc123faca233cb9d866bbc17">
+                        </div>
+                        <div id='btn-next' class="video-controls__item _ctrl-row1 _active_btn _btn_next">
+                            <img class="video-controls__item_size1" src="images/icons/play-next-button.png?v=bff5dfd2dc123faca233cb9d866bbc17">
+                        </div>
+                    </div>
+                </div>
+                <div class="video-controls">
+                    <div class="video-controls_bottom">
+                        <div class="video-controls-container">
+                            <div id="block-btn" class="video-controls__item video-controls__item_bordered _ctrl-row2 _active_btn" action_type="block">
+                                <img class="video-controls__item_size1 mirror-vertical" src="images/icons/padlock.png?v=bff5dfd2dc123faca233cb9d866bbc17">
+                            </div>
+                            <div id="fav-btn" class="video-controls__item video-controls__item_bordered _ctrl-row2 _active_btn">
+                                <img class="video-controls__item_size1" src="images/icons/bookmark-white.png?v=bff5dfd2dc123faca233cb9d866bbc17">
+                            </div>
+                            <div id="live-btn" class="video-controls__item video-controls__item_disabled _ctrl-row2">
+                                <img class="video-controls__item_size3" src="images/icons/live-icon.png?v=bff5dfd2dc123faca233cb9d866bbc17">
+                            </div>
+                            <div id="quality-btn" class="video-controls__item video-controls__item_text video-controls__item_disabled _ctrl-row2">
+                                <span>1080p</span>
+                            </div>
+                            <div id="volume-btn" class="video-controls__item video-controls__item_bordered _volume_off _ctrl-row2 _active_btn">
+                                <img class="volume-img video-controls__item_size1" src="images/icons/mute-icon.png?v=bff5dfd2dc123faca233cb9d866bbc17">
+                            </div>
+                        </div>
+                    </div>
+                    <div id="aspect-ratio-btn" class="video-controls__item video-controls__item_apect-ratio video-controls__item_disabled _ctrl-row2">
+                        <img class="video-controls__item_size1" src="images/icons/aspect_ratio.png?v=bff5dfd2dc123faca233cb9d866bbc17">
+                    </div>
+                    <div id="fullscreen-btn" class="video-controls__item video-controls__item_bordered video-controls__item_fullscreen _ctrl-row2">
+                        <img class="video-controls__item_size1" src="images/icons/switch-to-full-screen-button.png?v=bff5dfd2dc123faca233cb9d866bbc17">
+                    </div>
+                </div>
+            </div>
+
+            <div id='main-menu' class="main-menu hidden">
+                <div class="main-menu-header">
+                    <div class="arrow-container main-menu-header-arrow-container arrow-container_grey-arrow">
+                        <img class="arrow-container__arrow-icon mirror-vertical" src="images/icons/angle-arrow-pointing-to-right.png?v=bff5dfd2dc123faca233cb9d866bbc17">
+                    </div>
+                    <div id='main-menu-title' class="main-menu-header__title _main_menu_title"></div>
+                    <div class="main-menu-hamburger">
+                        <img class="main-menu-hamburger__icon hamburger-icon" src="images/icons/main_menu-icon_grey.png?v=bff5dfd2dc123faca233cb9d866bbc17">
+                    </div>
+                </div>
+                <div class="main-menu-container">
+                    <div id='categories-container' class="categories-container _categories_container hidden">
+                        <div class="category-group">
+                            <div class="category-item-container _category _category_all current-item" _id="all" category="all">
+                                <div class="category-item">
+                                    <div class="category-item__img">
+                                        <img class="_category_img" src="images/all.png?v=bff5dfd2dc123faca233cb9d866bbc17">
+                                    </div>
+                                    <span class="category-item__title _category_name cropper" loc="category_all">All channels</span>
+                                </div>
+                            </div>
+                            <div class="category-item-container _category _category_favorites hidden" _id="favorites" category="favorites">
+                                <div class="category-item">
+                                    <div class="category-item__img">
+                                        <img class="_category_img" src="images/playing.png?v=bff5dfd2dc123faca233cb9d866bbc17">
+                                    </div>
+                                    <span class="category-item__title _category_name cropper" loc="category_favorites">Favorites</span>
+                                </div>
+                            </div>
+                            <div class="category-item-container _category_blocked hidden" _id="blocked" category="blocked" action_type="enter">
+                                <div class="category-item">
+                                    <div class="category-item__img">
+                                        <img class="_category_img" src="images/locked.png?v=bff5dfd2dc123faca233cb9d866bbc17">
+                                    </div>
+                                    <span class="category-item__title _category_name cropper" loc="category_blocked">Blocked</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div id='channel-groups-container' class="channels-list-container _ch_container _firstly-open-block hidden">
+                        <div class="_channels_group hidden">
+                            <div class="ch-item _channel hidden" ganre_id="">
+                                <div class="ch-item__number _ch_number"></div>
+                                <div class="ch-item__playing-channel playing-item">
+                                    <img class="channel-playing-logo" src="images/icons/playing-now.png?v=bff5dfd2dc123faca233cb9d866bbc17">
+                                </div>
+                                <div class="ch-item__img-container ch-img-container">
+                                    <img class="ch-img-container__img _ch_img" src="">
+                                </div>
+                                <div class="ch-item__title-rating ch-title-rating">
+                                    <div class="ch-title-rating__title ch-title_new-style">
+                                        <span href="#" class="_ch_name cropper"></span>
+                                    </div>
+                                    <img class="rating-container__favorites rating-container__favorites_new-style" src="images/icons/bookmark-yellow.png?v=bff5dfd2dc123faca233cb9d866bbc17" style="opacity: 0;">
+                                    <div class="ch-title-rating__rating rating-container hidden">
+                                        <!--<img class="rating-container__favorites" src="images/icons/bookmark-yellow.png?v=bff5dfd2dc123faca233cb9d866bbc17" style="opacity: 0;">-->
+                                        <div class="rating-container__points rating-points">
+                                            <div class="rating-points__item rating-points__item_checked"></div>
+                                            <div class="rating-points__item rating-points__item_checked"></div>
+                                            <div class="rating-points__item"></div>
+                                            <div class="rating-points__item"></div>
+                                            <div class="rating-points__item"></div>
+                                        </div>
+                                    </div>
+                                    <div class="ch-item-progressbar-block">
+                                        <input type="range" min="0" max="100" value="0" class="ch-item-progressbar _ch-item_progressbar _channels_progress" disabled>
+                                    </div>
+                                    <!-- <div class="arrow-container ch-title-rating__arrow _render_epg_btn hidden">
+                                        <img class="" src="images/icons/angle-arrow-pointing-to-right.png?v=bff5dfd2dc123faca233cb9d866bbc17">
+                                    </div> -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div id='arrows-container' class="block-with-arrows _arrow_block">
+                        <div class="_arrow_container">
+                            <div class="arrow-block-item _render_epg_btn hidden">
+                                <div class="arrow-container ch-title-rating__arrow">
+                                    <img class="" src="images/icons/angle-arrow-pointing-to-right.png?v=bff5dfd2dc123faca233cb9d866bbc17">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div id='epg-container' class="program-list-container _epg_container hidden">
+                        <div id='epg-loader' class="content-loader _epg_loader hidden">
+                            <img class="content-loader__img" src="images/icons/loader.png?v=4a88762b3affd7a06cecbe31a673045a">
+                        </div>
+                        <div class="one-epg-day _one_day_epg hidden">
+                            <div class="epg-day-title">
+                                <span class="epg-day-title__date _epg_date"></span>
+                                <span class="epg-day-title__day-name _epg_day"></span>
+                            </div>
+                            <div class="epg-day-prog  hidden">
+                                <span class="epg-day-prog__time cropper _prog_epg_timestart"></span>
+                                <span class="epg-day-play playing-item">
+                                    <img class="epg-playing-logo" src="images/icons/playing-now.png?v=4a88762b3affd7a06cecbe31a673045a">
+                                </span>
+                                <span class="epg-day-prog__name_title"><span class="_prog_epg_name cropper"></span></span>
+                                <span class="epg-day-prog__name_more-about _more_about_btn hidden">&gt</span>
+                            </div>
+                            <div class="next-day-btn _next_day_btn hidden"></div>
+                        </div>
+                        <div class="epg-shadow-block hidden"></div>
+                    </div>
+                    <div id='more-about-container' class="more-about-container _more_about_container hidden">
+                        <div id='more-about-loader' class="content-loader _more_about_loader hidden">
+                            <img class="content-loader__img" src="images/icons/loader.png?v=bff5dfd2dc123faca233cb9d866bbc17">
+                        </div>
+                        <div id='gallery-container' class="gallery-container">
+                            <div class="gallery-container__top gallery-big-img-container">
+                                <div id='big-img' class="gallery-big-img-container__img _big_img"></div>
+                            </div>
+                            <div class="gallery-container__bottom">
+                                <div class="gallery-btn-container hidden">
+                                    <div class="gallery-btn-container__btn default-btn">
+                                        <img class="default-btn__img" src="images/icons/play-main-btn.png?v=bff5dfd2dc123faca233cb9d866bbc17">
+                                        <div class="default-btn__text">watch now</div>
+                                    </div>
+                                </div>
+                                <div class="gallery-imgs-container__arrow gallery-imgs-container__arrow_left">&lsaquo;</div>
+                                <div class="gallery-imgs-container">
+                                    <div class="gallery-imgs-container__imgs default-gallery">
+                                        <img class="default-gallery__item _gallery_item _active_img" src="" full_img_url="" alt=''/>
+                                    </div>
+                                </div>
+                                <div class="gallery-imgs-container__arrow gallery-imgs-container__arrow_right">&rsaquo;</div>
+                            </div>
+                        </div>
+                        <div id='content-container' class="content-container _content_container">
+                            <span class="content-container__title _program_name"></span>
+                            <div class="content-container__tags default-tags _program_tags">
+                                <span class="default-tags__item _tag_item hidden"></span>
+                            </div>
+                            <span class="content-container__description _program_description"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="home-menu" class="home-menu hidden">
+                <div class="home-menu-header">
+                    <div class="home-btn">
+                        <img class="home-btn__img" src="images/icons/home_menu-icon-grey.png?v=bff5dfd2dc123faca233cb9d866bbc17">
+                    </div>
+                    <div class="home-menu-header-right-block">
+                        <div class="main-menu-header__title home-title" loc="home_menu"></div>
+                        <div class="arrow-container home-menu-header-arrow-container arrow-container_grey-arrow">
+                            <img class="arrow-container__arrow-icon" src="images/icons/angle-arrow-pointing-to-right.png?v=bff5dfd2dc123faca233cb9d866bbc17">
+                        </div>
+                    </div>
+                </div>
+                <div class="home-menu-container">
+                    <div class="home-functions-container _firstly-open-block hidden">
+                        <!--                    <div class="user-info">
+                                                <div class="user-avatar">
+                                                    <img class="user-avatar__img" src="images/icons/user.png?v=bff5dfd2dc123faca233cb9d866bbc17">
+                                                </div>
+                                                <div class="login-container">
+                                                    <div class="login-container__username">Jack Johnson</div>
+                                                    <a href="#" class="login-container__btn">Log out</a>
+                                                </div>
+                                            </div>-->
+                        <div class="functions-list">
+                            <!--                        <div class="function-item-container">
+                                                        <div class="func-item _archive" open-data="video-archive-container">
+                                                            <div class="arrow-container arrow-container_violet-arrow">
+                                                                <img class="arrow-container__arrow-icon mirror-vertical" src="images/icons/angle-arrow-pointing-to-right.png?v=bff5dfd2dc123faca233cb9d866bbc17">
+                                                            </div>
+                                                            <div class="image-title-block">
+                                                                <div class="func-image">
+                                                                    <img class="func-image__img" src="images/icons/play-button.png?v=bff5dfd2dc123faca233cb9d866bbc17">
+                                                                </div>
+                                                                <div class="func-title-container">
+                                                                    <a href="#" class="ch-item__name">Video archive</a>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>-->
+                            <div class="function-item-container" func_id="parent-control">
+                                <div id='parent-control' class="func-item _parent_control" open-data="parent-control-container">
+                                    <div class="arrow-container arrow-container_violet-arrow">
+                                        <img class="arrow-container__arrow-icon mirror-vertical" src="images/icons/angle-arrow-pointing-to-right.png?v=bff5dfd2dc123faca233cb9d866bbc17">
+                                    </div>
+                                    <div class="image-title-block">
+                                        <div class="func-image">
+                                            <img class="func-image__img" src="images/icons/smiling-baby.png?v=bff5dfd2dc123faca233cb9d866bbc17">
+                                        </div>
+                                        <div class="func-title-container">
+                                            <span href="#" class="ch-item__name cropper" loc="parental_control">Parental control</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="function-item-container" func_id="settings">
+                                <div class="func-item _settings" open-data="settings-container">
+                                    <div class="arrow-container arrow-container_violet-arrow">
+                                        <img class="arrow-container__arrow-icon mirror-vertical" src="images/icons/angle-arrow-pointing-to-right.png?v=bff5dfd2dc123faca233cb9d866bbc17">
+                                    </div>
+                                    <div class="image-title-block">
+                                        <div class="func-image">
+                                            <img class="func-image__img" src="images/icons/settings.png?v=bff5dfd2dc123faca233cb9d866bbc17">
+                                        </div>
+                                        <div class="func-title-container">
+                                            <span href="#" class="ch-item__name" loc="settings">Settings</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="video-archive-container hidden">
+                        <div class="input-archive">
+                            <input type="text" class="input-archive__input">
+                        </div>
+                        <div class="archives">
+                            <div class="archive-item current-item">
+                                <div class="archive-item-img-container">
+                                    <img class="archive-item__img" src="images/inter.jpg?v=bff5dfd2dc123faca233cb9d866bbc17">
+                                </div>
+                                <div class="archive-item-descr">
+                                    <div class="achive-item__title cropper">Game of thrones</div>
+                                    <div>
+                                        <div class="archive-item__date">12.04.2017</div>
+                                        <span class="archive-separator">|</span>
+                                        <div class="archive-item__time">12:30</div>
+                                    </div>
+                                </div>
+                                <div class="archive-epg">
+                                    <span class="epg-day-prog__name_more-about archive-epg_nomargin _more_about_btn">&gt;</span>
+                                </div>
+                            </div>
+                            <div class="archive-item">
+                                <div class="archive-item-img-container">
+                                    <img class="archive-item__img" src="images/Logo_Mega.png?v=bff5dfd2dc123faca233cb9d866bbc17">
+                                </div>
+                                <div class="archive-item-descr">
+                                    <div class="achive-item__title cropper">Game of thrones Game of thrones</div>
+                                    <div>
+                                        <div class="archive-item__date">15.04.2017</div>
+                                        <span class="archive-separator">|</span>
+                                        <div class="archive-item__time">22:30</div>
+                                    </div>
+                                </div>
+                                <div class="archive-epg">
+                                    <span class="epg-day-prog__name_more-about archive-epg_nomargin _more_about_btn">&gt;</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="more-about-container archive-more-about hidden">
+
+                    </div>
+                    <div id="parent-control-container" class="parent-control-container hidden">
+                        <div class="form-block">
+                            <div class="input-row">
+                                <input id="input-1" data="parent-input-1" type="password" class="parent-form__input password-input _current_pass _input_item" row="1" col="1" loc="current_pass" autocomplete="off" placeholder="Current password" maxlength="4">
+                                <div data="parent-showbtn-btn-1" class="show-pass-btn _show_pass_btn _input_item" data-attr="_current_pass" row="1" col="2"></div>
+                                <div class="input-alert _input_alert hidden"></div>
+                            </div>
+                            <div class="input-row">
+                                <input id="input-2" data="parent-input-2" type="password" class="parent-form__input password-input _new_pass _input_item" row="2" col="1" loc="new_pass" autocomplete="off" placeholder="New password" maxlength="4">
+                                <div data="parent-showbtn-2" class="show-pass-btn _show_pass_btn _input_item" data-attr="_new_pass" row="2" col="2"></div>
+                                <div class="input-alert _input_alert hidden"></div>
+                            </div>
+                            <div class="input-row">
+                                <input id="input-3" data="parent-input-3" type="password" class="parent-form__input password-input _confirm_pass _input_item" row="3" col="1" loc="confirm_pass" autocomplete="off" placeholder="Confirm password" maxlength="4">
+                                <div data="parent-showbtn-3" class="show-pass-btn _show_pass_btn _input_item" data-attr="_confirm_pass" row="3" col="2"></div>
+                                <div class="input-alert _input_alert hidden"></div>
+                            </div>
+                            <div id='save-pc-btn' data="settings-btn" class="parent-form-btn parent-form__input settings-btn _save_pc_btn">
+                                <span loc="save">Save</span>
+                            </div>
+                            <div class="save-all-btn success-btn hidden _success_saved">
+                                <span loc="success_saved">Password saved</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="settings-container hidden">
+                        <!--                    <div class="select-device select-device_padding">
+                                                <div class="settings-title">Select your device</div>
+                                                <div class="devices-container">
+                                                    <div class="device-item">
+                                                        <img class="device-item__img" src="images/mob_icon.png?v=bff5dfd2dc123faca233cb9d866bbc17">
+                                                    </div>
+                                                    <div class="device-item item-active">
+                                                        <img class="device-item__img" src="images/tablet_icon.png?v=bff5dfd2dc123faca233cb9d866bbc17">
+                                                    </div>
+                                                    <div class="device-item">
+                                                        <img class="device-item__img" src="images/mob_icon.png?v=bff5dfd2dc123faca233cb9d866bbc17">
+                                                    </div>
+                                                    <div class="device-item">
+                                                        <img class="device-item__img" src="images/mob_icon.png?v=bff5dfd2dc123faca233cb9d866bbc17">
+                                                    </div>
+                                                </div>
+                                            </div>-->
+                        <div class="select-language select-device_padding">
+                            <div class="settings-title" loc="language">Language</div>
+                            <div id='languages-container' class="languages">
+                                <div class="languages__item _lang_btn" lang="ua" loc="ukraine">Ukraine</div>
+                                <div class="languages__item _lang_btn" lang="en" loc="english">English</div>
+                                <!--<div class="languages__item _lang_btn" lang="pl" loc="poland">Poland</div>-->
+                                <div class="languages__item _lang_btn _lang_btn_default" lang="ru" loc="russian">Russia</div>
+                            </div>
+                        </div>
+                        <div class="settings-btn">
+                            <div href="#" id='reset-settings-btn' class="settings-btn__item _reset_settings_btn" loc="reset_to_default">Reset to default</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id='popup' class="popup _fullscreen_confirm hidden">
+                <div id='popup-title' class="popup__title _confirm_title">Enter parental control password</div>
+                <div class="form-block">
+                    <div class="input-row">
+                        <input id="input-4" data="popup-input-1" type="password" class="parent-form__input password-input _popup_input_item _current_confirm_pass" row="1" col="1" loc="current_pass" autocomplete="off" placeholder="Current password" maxlength="4">
+                        <div data="popup-showbtn-1" class="show-pass-btn _popup_input_item _show_pass_btn" row="1" col="2"></div>
+                        <div class="input-alert _input_alert hidden"></div>
+                    </div>
+                    <div class="input-row show-pass _set_pass_mod hidden">
+                        <input id="input-5" data="popup-input-2" type="password" class="parent-form__input password-input _popup_input_item _fs_new_pass" row="2" col="1" loc="new_pass" autocomplete="off" placeholder="New password" maxlength="4">
+                        <div data="popup-showbtn-2" class="show-pass-btn _popup_input_item _show_pass_btn" row="2" col="2"></div>
+                        <div class="input-alert _input_alert hidden"></div>
+                    </div>
+                    <div class="input-row _set_pass_mod hidden">
+                        <input id="input-6" data="popup-input-3" type="password" class="parent-form__input password-input _popup_input_item _fs_confirm_pass" row="3" col="1" loc="confirm_pass" autocomplete="off" placeholder="Confirm password" maxlength="4">
+                        <div data="popup-showbtn-3" class="show-pass-btn _popup_input_item _show_pass_btn" row="3" col="2"></div>
+                        <div class="input-alert _input_alert hidden"></div>
+                    </div>
+                    <!--                <div class="confirm-btn-row">
+                                        <div class="confirm-btn _cancel_btn">
+                                            <span loc="cancel_btn">Отменить</span>
+                                        </div>
+                                        <div class="confirm-btn _confirm_btn">
+                                            <span loc="ok_btn">ОК</span>
+                                        </div>
+                                        <div class="confirm-btn _set_pass_mod _save_pass_btn hidden">
+                                            <span loc="save">Save</span>
+                                        </div>
+                                    </div>-->
+                    <div class="popup-btns-container">
+                        <div id='popup-cancel-btn' data="cancel-btn" class="parent-form-btn settings-btn popup-btn settings-btn__cancel _cancel_btn">
+                            <span loc="cancel_btn">Cancel</span>
+                        </div>
+                        <div id='popup-confirm-btn' data="confirm-btn" class="parent-form-btn settings-btn popup-btn settings-btn__ok _confirm_btn">
+                            <span loc="ok_btn">Ok</span>
+                        </div>
+                        <div id='popup-save-pass-btn' data="savepass-btn" class="parent-form-btn settings-btn popup-btn settings-btn__save _set_pass_mod _save_pass_btn hidden">
+                            <span loc="save">Save</span>
+                        </div>
+                        <div class="save-all-btn success-btn hidden _success_saved">
+                            <span loc="success_saved">Password saved</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script src="js/script.min.js?v=bff5dfd2dc123faca233cb9d866bbc17"></script>
+    </body>

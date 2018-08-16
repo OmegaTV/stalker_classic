@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="500"
+   height="500"
+   viewBox="0 0 499.99998 499.99998"
+   id="svg2"
+   version="1.1"
+   inkscape:version="0.91 r13725"
+   sodipodi:docname="aspect_ratio.svg">
+  <defs
+     id="defs4" />
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="0.24748737"
+     inkscape:cx="455.8441"
+     inkscape:cy="846.75883"
+     inkscape:document-units="px"
+     inkscape:current-layer="g3344"
+     showgrid="false"
+     inkscape:snap-page="true"
+     inkscape:snap-center="true"
+     inkscape:snap-object-midpoints="true"
+     inkscape:snap-text-baseline="true"
+     inkscape:snap-midpoints="true"
+     inkscape:snap-smooth-nodes="true"
+     inkscape:object-nodes="true"
+     inkscape:snap-intersection-paths="true"
+     inkscape:object-paths="true"
+     inkscape:snap-bbox="true"
+     inkscape:bbox-paths="true"
+     inkscape:bbox-nodes="true"
+     inkscape:snap-bbox-edge-midpoints="true"
+     inkscape:snap-bbox-midpoints="true"
+     units="px"
+     inkscape:window-width="1920"
+     inkscape:window-height="1058"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1" />
+  <metadata
+     id="metadata7">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(0,-552.36209)"
+     fill="white">
+    <g
+       id="g3344"
+       transform="translate(-847.14336,-480.3648)">
+      <path
+         d="m 1276.2334,1302.7268 -45.4549,0 0,68.1819 -68.1818,0 0,45.4549 113.6357,0 0,-113.6368 z m -312.72627,-108.1817 68.18177,0 0,-45.455 -113.63667,0 0,113.6368 45.4549,0 0,-68.1818 z m 338.18027,-116.3628 -419.08907,0 c -25,0 -35.455,10.454 -35.455,35.4539 l 0,338.1813 c 0,25 10.455,35.4549 35.455,35.4549 l 429.08997,0 c 25,0 35.455,-10.4549 35.455,-35.4549 l 0,-338.1813 c 0,-24.9999 -10.455,-35.4549 -35.455,-35.4549 l -10.0009,10e-4 z m 12.9549,373.9522 -434.99897,0 0,-338.8153 434.99897,0 0,338.8153 z"
+         inkscape:connector-curvature="0"
+         id="path4" />
+    </g>
+  </g>
+</svg>
