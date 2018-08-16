@@ -24,7 +24,7 @@
   },
   "dependencies": {
     "npm": "^6.0.0",
-    "webplayer.desktop.hls.tv": "git+ssh://git@devserv.hls.tv:hls/webplayer.desktop.hls.tv.git#HLS-1439-vnesti-izmeneniya-v-proekty-common-webplayer-dlya-stalkera"
+    "webplayer.desktop.hls.tv": "git+ssh://git@devserv.hls.tv:hls/webplayer.desktop.hls.tv.git#HLS-1439-stalker-deploy-branch"
   },
   "repository": {
     "type": "git",

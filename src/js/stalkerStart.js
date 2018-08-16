@@ -540,11 +540,11 @@ window.onload = function() {
         var playPauseImg = document.getElementById('play-pause-btn-img');
         if (stbVideo.state == 3) {
             stbVideo.resume();
-            playPauseImg.setAttribute('src', 'images/icons/pause-button.svg');
+            playPauseImg.setAttribute('src', 'images/icons/pause-button.png');
         }
         else {
             stbVideo.pause();
-            playPauseImg.setAttribute('src', 'images/icons/play-main-btn.svg');
+            playPauseImg.setAttribute('src', 'images/icons/play-main-btn.png');
         }
     };
 
@@ -665,7 +665,7 @@ window.onload = function() {
         // <=======
         document.getElementsByClassName("category-item-container current-item")[0].classList.add("item-active");
         document.getElementById('arrows-container').classList.add("block-with-arrows_55vw");
-        document.getElementById('main-menu').classList.add("_open_categories");
+        document.getElementById('main-menu').classList.add("open-categories");
         var elem = document.getElementsByClassName("ch-item item-active")[0];
         elem.className = elem.className.replace(/\bitem-active\b/g, "");
         setWidth("main-menu", 55);
@@ -822,8 +822,8 @@ mag.openMenu = function(){
             mag.setChannelsMode();
             break;
         case("home-menu"):
-            navigation.openRightMenu();
-            mag.setSettingsMode();
+            // navigation.openRightMenu();
+            // mag.setSettingsMode();
             break;
         default:
             break;
