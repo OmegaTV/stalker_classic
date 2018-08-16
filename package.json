@@ -28,6 +28,6 @@
   },
   "repository": {
     "type": "git",
-    "url": "git@devserv.hls.tv:hls/stalker-classic.git"
+    "url": "https://github.com/OmegaTV/stalker_classic.git"
   }
 }
