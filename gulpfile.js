@@ -109,7 +109,7 @@ gulp.task('js', ['js-common'], function () {
 // ------------------------------- replacing project-images to proper directory
 gulp.task('images', function () {
     return gulp.
-        src(['node_modules/webplayer.desktop.hls.tv/web/images/**/*'])
+        src(['src/images/**/*'])
         .pipe(gulp.dest(gulp_images_dest));
 });
 
