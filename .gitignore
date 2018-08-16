@@ -1,0 +1,10 @@
+/dest/js
+/dest/css
+/dest/index.html
+/dest/config/config.js
+/src/config/config.js
+/node_modules
+/src/css/style.css
+/.idea
+/package-lock.json
+/dest/

@@ -1,0 +1,70 @@
+body {
+  background-color: transparent !important;
+}
+
+
+//activation modal
+.activation-modal {
+  height: 720px !important;
+  background-color: #001;
+}
+.error-btns:not(.hidden) {
+  display: block !important;
+}
+.activation-modal__header {
+  height: 50px;
+}
+
+
+.main-menu {
+  background-color: transparent !important;
+  background-image: url('../images/transparent.png');
+  background-repeat: repeat;
+}
+
+// <----- хардкод выосты контейнеров для правильного скролла
+.categories-container,
+.channels-list-container,
+.program-list-container {
+  height: 650px !important;
+}
+.content-container {
+  height: 190px !important;
+}
+// ------>
+
+// <----- хардкод ширин контейнеров для отображения без багов
+.channels-list-container {
+  width: 384px !important;
+}
+.categories-container,
+.program-list-container {
+  width: 320px !important;
+}
+.more-about-container {
+  width: 576px !important;
+}
+// ------>
+
+// <----- хардкод блока со стрелками
+.block-with-arrows {
+  left: 375px !important;
+}
+// ------>
+
+// <----- временно скрываем прогресбары в списке каналов
+.ch-item-progressbar-block {
+  display: none !important;
+}
+// ------>
+
+.video-controls_top .video-controls__item:hover,
+.video-controls_top .video-controls__item.active {
+  background: #0f6fd0;
+}
+
+@media screen and (min-width: 1200px) and (max-width: 1300px) {
+  .category-item__title {
+    width: 70% !important;
+  }
+}
