@@ -665,11 +665,12 @@ window.onload = function() {
         // <=======
         document.getElementsByClassName("category-item-container current-item")[0].classList.add("item-active");
         document.getElementById('arrows-container').classList.add("block-with-arrows_55vw");
-        document.getElementById('main-menu').classList.add("open-categories");
+        //var mainMenu = document.getElementById('main-menu');
+        //mainMenu.className += " open-categories";
         var elem = document.getElementsByClassName("ch-item item-active")[0];
         elem.className = elem.className.replace(/\bitem-active\b/g, "");
         setWidth("main-menu", 55);
-    }
+    };
 
     //ставим фиолетовый фокус на первый достпный элемент из списка Епг
     Stalker.prototype.setActiveFirstEpgItem = function () {
