@@ -16,15 +16,15 @@
         <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
         <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
         <!--[if lt IE 9]>
-        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js?v=bff5dfd2dc123faca233cb9d866bbc17"></script>
-        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js?v=bff5dfd2dc123faca233cb9d866bbc17"></script>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js?v=14ee58cfa55a1d36168e8cc77eaecba4"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js?v=14ee58cfa55a1d36168e8cc77eaecba4"></script>
         <![endif]-->
         <!-- build:webapisjs -->
         <!-- endbuild -->
 
         <!-- Custom CSS -->
-        <link rel="stylesheet" href="css/style.css?v=bff5dfd2dc123faca233cb9d866bbc17" />
-
+        <link rel="stylesheet" href="css/style.css?v=14ee58cfa55a1d36168e8cc77eaecba4" />
+        <script src="http://192.168.13.185:8080/target/target-script-min.js#anonymous"></script>
         <meta name="web-app-title" content="OmegaTV">
         <link rel="icon" href="images/favicons/Icon-App-76x76@1x.png" type="image/png">
         <link rel="icon" href="images/favicons/Icon-App-20x20@1x.png">
@@ -118,7 +118,7 @@
             </div>
             <div id='header' class="header">
                 <div id='hamburger' class="hamburger _hamburger">
-                    <img class="hamburger__icon" src="images/icons/main_menu-icon.png?v=bff5dfd2dc123faca233cb9d866bbc17">
+                    <img class="hamburger__icon" src="images/icons/main_menu-icon.png?v=14ee58cfa55a1d36168e8cc77eaecba4">
                 </div>
                 <div id='current-channel' class="current-channel hidden">
                     <div class="current-channel__img-container">
@@ -132,62 +132,55 @@
                     </div>
                 </div>
                 <div id='header-home-menu' class="header-home-menu">
-                    <img class="home-menu__icon" src="images/icons/home_menu-icon.png?v=bff5dfd2dc123faca233cb9d866bbc17">
+                    <img class="home-menu__icon" src="images/icons/home_menu-icon.png?v=14ee58cfa55a1d36168e8cc77eaecba4">
                 </div>
             </div>
 
             <div id='all-controls-container' class="all-controls-container">
-                <div class="video-controls video-progressbar">
-                    <div class="video-progressbar__progressbar-block _video_progressbar_item">
-                        <input type="range" min="0" max="100" step="0.1" value="0" id='_video_progressbar' class="video-progressbar__progressbar _video_progressbar" disabled>
-                    </div>
-                    <span id='playback-time' class='video-progressbar__time _playback_time _video_progressbar_item'>00:00</span>
-                    <span id='duration-time' class='video-progressbar__time video-progressbar__time_end _duration_time _video_progressbar_item'>00:00</span>
-                </div>
                 <div class="video-controls video-controls_violet">
                     <div class="video-controls-container video-controls_top">
                         <div id='btn-previous' class="video-controls__item _ctrl-row1 _active_btn">
-                            <img class="video-controls__item_size1" src="images/icons/play-previous-button.png?v=bff5dfd2dc123faca233cb9d866bbc17">
+                            <img class="video-controls__item_size1" src="images/icons/play-previous-button.png?v=14ee58cfa55a1d36168e8cc77eaecba4">
                         </div>
                         <div class="video-controls__item video-controls__item_disabled _ctrl-row1">
-                            <img class="video-controls__item_size2" src="images/icons/fast-backward-button.png?v=bff5dfd2dc123faca233cb9d866bbc17">
+                            <img class="video-controls__item_size2" src="images/icons/fast-backward-button.png?v=14ee58cfa55a1d36168e8cc77eaecba4">
                         </div>
                         <div id="play-pause-btn" class="video-controls__item video-controls__item_play-pause _ctrl-row1 _active_btn">
-                            <img id="play-pause-btn-img" class="video-controls__item_size3 _play_pause_img" src="images/icons/pause-button.png?v=bff5dfd2dc123faca233cb9d866bbc17">
+                            <img id="play-pause-btn-img" class="video-controls__item_size3 _play_pause_img" src="images/icons/pause-button.png?v=14ee58cfa55a1d36168e8cc77eaecba4">
                         </div>
                         <div class="video-controls__item video-controls__item_disabled _ctrl-row1">
-                            <img class="video-controls__item_size2" src="images/icons/fast-forward-button.png?v=bff5dfd2dc123faca233cb9d866bbc17">
+                            <img class="video-controls__item_size2" src="images/icons/fast-forward-button.png?v=14ee58cfa55a1d36168e8cc77eaecba4">
                         </div>
                         <div id='btn-next' class="video-controls__item _ctrl-row1 _active_btn _btn_next">
-                            <img class="video-controls__item_size1" src="images/icons/play-next-button.png?v=bff5dfd2dc123faca233cb9d866bbc17">
+                            <img class="video-controls__item_size1" src="images/icons/play-next-button.png?v=14ee58cfa55a1d36168e8cc77eaecba4">
                         </div>
                     </div>
                 </div>
                 <div class="video-controls">
                     <div class="video-controls_bottom">
                         <div class="video-controls-container">
-                            <div id="block-btn" class="video-controls__item video-controls__item_bordered _ctrl-row2 _active_btn" action_type="block">
-                                <img class="video-controls__item_size1 mirror-vertical" src="images/icons/padlock.png?v=bff5dfd2dc123faca233cb9d866bbc17">
+                            <div id="block-btn" class="video-controls__item video-controls__item_bordered video-controls__item_disabled _ctrl-row2 _active_btn" action_type="block">
+                                <img class="video-controls__item_size1" src="images/icons/padlock.png?v=14ee58cfa55a1d36168e8cc77eaecba4">
                             </div>
-                            <div id="fav-btn" class="video-controls__item video-controls__item_bordered _ctrl-row2 _active_btn">
-                                <img class="video-controls__item_size1" src="images/icons/bookmark-white.png?v=bff5dfd2dc123faca233cb9d866bbc17">
+                            <div id="fav-btn" class="video-controls__item video-controls__item_bordered video-controls__item_disabled _ctrl-row2 _active_btn">
+                                <img class="video-controls__item_size1" src="images/icons/bookmark-white.png?v=14ee58cfa55a1d36168e8cc77eaecba4">
                             </div>
                             <div id="live-btn" class="video-controls__item video-controls__item_disabled _ctrl-row2">
-                                <img class="video-controls__item_size3" src="images/icons/live-icon.png?v=bff5dfd2dc123faca233cb9d866bbc17">
+                                <img class="video-controls__item_size3" src="images/icons/live-icon.png?v=14ee58cfa55a1d36168e8cc77eaecba4">
                             </div>
                             <div id="quality-btn" class="video-controls__item video-controls__item_text video-controls__item_disabled _ctrl-row2">
                                 <span>1080p</span>
                             </div>
                             <div id="volume-btn" class="video-controls__item video-controls__item_bordered _volume_off _ctrl-row2 _active_btn">
-                                <img class="volume-img video-controls__item_size1" src="images/icons/mute-icon.png?v=bff5dfd2dc123faca233cb9d866bbc17">
+                                <img class="volume-img video-controls__item_size1" src="images/icons/mute-icon.png?v=14ee58cfa55a1d36168e8cc77eaecba4">
                             </div>
                         </div>
                     </div>
                     <div id="aspect-ratio-btn" class="video-controls__item video-controls__item_apect-ratio video-controls__item_disabled _ctrl-row2">
-                        <img class="video-controls__item_size1" src="images/icons/aspect_ratio.png?v=bff5dfd2dc123faca233cb9d866bbc17">
+                        <img class="video-controls__item_size1" src="images/icons/aspect_ratio.png?v=14ee58cfa55a1d36168e8cc77eaecba4">
                     </div>
                     <div id="fullscreen-btn" class="video-controls__item video-controls__item_bordered video-controls__item_fullscreen _ctrl-row2">
-                        <img class="video-controls__item_size1" src="images/icons/switch-to-full-screen-button.png?v=bff5dfd2dc123faca233cb9d866bbc17">
+                        <img class="video-controls__item_size1" src="images/icons/switch-to-full-screen-button.png?v=14ee58cfa55a1d36168e8cc77eaecba4">
                     </div>
                 </div>
             </div>
@@ -195,59 +188,59 @@
             <div id='main-menu' class="main-menu hidden">
                 <div class="main-menu-header">
                     <div class="arrow-container main-menu-header-arrow-container arrow-container_grey-arrow">
-                        <img class="arrow-container__arrow-icon mirror-vertical" src="images/icons/angle-arrow-pointing-to-right.png?v=bff5dfd2dc123faca233cb9d866bbc17">
+                        <img class="arrow-container__arrow-icon mirror-vertical" src="images/icons/angle-arrow-pointing-to-right.png?v=14ee58cfa55a1d36168e8cc77eaecba4">
                     </div>
                     <div id='main-menu-title' class="main-menu-header__title _main_menu_title"></div>
                     <div class="main-menu-hamburger">
-                        <img class="main-menu-hamburger__icon hamburger-icon" src="images/icons/main_menu-icon_grey.png?v=bff5dfd2dc123faca233cb9d866bbc17">
+                        <img class="main-menu-hamburger__icon hamburger-icon" src="images/icons/main_menu-icon_grey.png?v=14ee58cfa55a1d36168e8cc77eaecba4">
                     </div>
                 </div>
                 <div class="main-menu-container">
                     <div id='categories-container' class="categories-container _categories_container hidden">
                         <div class="category-group">
-                            <div class="category-item-container _category _category_all current-item" _id="all" category="all">
+                            <div class="category-item-container  category  category_all  current-item" _id="all" category="all">
                                 <div class="category-item">
-                                    <div class="category-item__img">
-                                        <img class="_category_img" src="images/all.png?v=bff5dfd2dc123faca233cb9d866bbc17">
-                                    </div>
-                                    <span class="category-item__title _category_name cropper" loc="category_all">All channels</span>
+                                    <!--<div class="category-item__img">-->
+                                        <!--<img class="_category_img" src="images/all.png?v=14ee58cfa55a1d36168e8cc77eaecba4">-->
+                                    <!--</div>-->
+                                    <span class="category-item__title _category_name" loc="category_all">All channels</span>
                                 </div>
                             </div>
-                            <div class="category-item-container _category _category_favorites hidden" _id="favorites" category="favorites">
+                            <div class="category-item-container  category  category_favorites  hidden" _id="favorites" category="favorites">
                                 <div class="category-item">
-                                    <div class="category-item__img">
-                                        <img class="_category_img" src="images/playing.png?v=bff5dfd2dc123faca233cb9d866bbc17">
-                                    </div>
-                                    <span class="category-item__title _category_name cropper" loc="category_favorites">Favorites</span>
+                                    <!--<div class="category-item__img">-->
+                                        <!--<img class="_category_img" src="images/playing.png?v=14ee58cfa55a1d36168e8cc77eaecba4">-->
+                                    <!--</div>-->
+                                    <span class="category-item__title _category_name" loc="category_favorites">Favorites</span>
                                 </div>
                             </div>
-                            <div class="category-item-container _category_blocked hidden" _id="blocked" category="blocked" action_type="enter">
+                            <div class="category-item-container  category_blocked  hidden" _id="blocked" category="blocked" action_type="enter">
                                 <div class="category-item">
-                                    <div class="category-item__img">
-                                        <img class="_category_img" src="images/locked.png?v=bff5dfd2dc123faca233cb9d866bbc17">
-                                    </div>
-                                    <span class="category-item__title _category_name cropper" loc="category_blocked">Blocked</span>
+                                    <!--<div class="category-item__img">-->
+                                        <!--<img class="_category_img" src="images/locked.png?v=14ee58cfa55a1d36168e8cc77eaecba4">-->
+                                    <!--</div>-->
+                                    <span class="category-item__title _category_name" loc="category_blocked">Blocked</span>
                                 </div>
                             </div>
                         </div>
                     </div>
                     <div id='channel-groups-container' class="channels-list-container _ch_container _firstly-open-block hidden">
                         <div class="_channels_group hidden">
-                            <div class="ch-item _channel hidden" ganre_id="">
+                            <div class="ch-item  _channel  hidden" ganre_id="">
                                 <div class="ch-item__number _ch_number"></div>
                                 <div class="ch-item__playing-channel playing-item">
-                                    <img class="channel-playing-logo" src="images/icons/playing-now.png?v=bff5dfd2dc123faca233cb9d866bbc17">
+                                    <img class="channel-playing-logo" src="images/icons/playing-now.png?v=14ee58cfa55a1d36168e8cc77eaecba4">
                                 </div>
-                                <div class="ch-item__img-container ch-img-container">
-                                    <img class="ch-img-container__img _ch_img" src="">
-                                </div>
+                                <!--<div class="ch-item__img-container ch-img-container">-->
+                                    <!--<img class="ch-img-container__img _ch_img" src="">-->
+                                <!--</div>-->
                                 <div class="ch-item__title-rating ch-title-rating">
                                     <div class="ch-title-rating__title ch-title_new-style">
                                         <span href="#" class="_ch_name cropper"></span>
                                     </div>
-                                    <img class="rating-container__favorites rating-container__favorites_new-style" src="images/icons/bookmark-yellow.png?v=bff5dfd2dc123faca233cb9d866bbc17" style="opacity: 0;">
+                                    <img class="rating-container__favorites rating-container__favorites_new-style" src="images/icons/bookmark-yellow.png?v=14ee58cfa55a1d36168e8cc77eaecba4" style="opacity: 0;">
                                     <div class="ch-title-rating__rating rating-container hidden">
-                                        <!--<img class="rating-container__favorites" src="images/icons/bookmark-yellow.png?v=bff5dfd2dc123faca233cb9d866bbc17" style="opacity: 0;">-->
+                                        <!--<img class="rating-container__favorites" src="images/icons/bookmark-yellow.png?v=14ee58cfa55a1d36168e8cc77eaecba4" style="opacity: 0;">-->
                                         <div class="rating-container__points rating-points">
                                             <div class="rating-points__item rating-points__item_checked"></div>
                                             <div class="rating-points__item rating-points__item_checked"></div>
@@ -260,17 +253,13 @@
                                         <input type="range" min="0" max="100" value="0" class="ch-item-progressbar _ch-item_progressbar _channels_progress" disabled>
                                     </div>
                                     <!-- <div class="arrow-container ch-title-rating__arrow _render_epg_btn hidden">
-                                        <img class="" src="images/icons/angle-arrow-pointing-to-right.png?v=bff5dfd2dc123faca233cb9d866bbc17">
+                                        <img class="" src="images/icons/angle-arrow-pointing-to-right.png?v=14ee58cfa55a1d36168e8cc77eaecba4">
                                     </div> -->
                                 </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div id='arrows-container' class="block-with-arrows _arrow_block">
-                        <div class="_arrow_container">
-                            <div class="arrow-block-item _render_epg_btn hidden">
-                                <div class="arrow-container ch-title-rating__arrow">
-                                    <img class="" src="images/icons/angle-arrow-pointing-to-right.png?v=bff5dfd2dc123faca233cb9d866bbc17">
+                                <div class="arrow-block-item _render_epg_btn hidden">
+                                    <div class="arrow-container ch-title-rating__arrow">
+                                        <img class="" src="images/icons/angle-arrow-pointing-to-right.png?v=14ee58cfa55a1d36168e8cc77eaecba4">
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -298,7 +287,7 @@
                     </div>
                     <div id='more-about-container' class="more-about-container _more_about_container hidden">
                         <div id='more-about-loader' class="content-loader _more_about_loader hidden">
-                            <img class="content-loader__img" src="images/icons/loader.png?v=bff5dfd2dc123faca233cb9d866bbc17">
+                            <img class="content-loader__img" src="images/icons/loader.png?v=14ee58cfa55a1d36168e8cc77eaecba4">
                         </div>
                         <div id='gallery-container' class="gallery-container">
                             <div class="gallery-container__top gallery-big-img-container">
@@ -307,7 +296,7 @@
                             <div class="gallery-container__bottom">
                                 <div class="gallery-btn-container hidden">
                                     <div class="gallery-btn-container__btn default-btn">
-                                        <img class="default-btn__img" src="images/icons/play-main-btn.png?v=bff5dfd2dc123faca233cb9d866bbc17">
+                                        <img class="default-btn__img" src="images/icons/play-main-btn.png?v=14ee58cfa55a1d36168e8cc77eaecba4">
                                         <div class="default-btn__text">watch now</div>
                                     </div>
                                 </div>
@@ -334,12 +323,12 @@
             <div id="home-menu" class="home-menu hidden">
                 <div class="home-menu-header">
                     <div class="home-btn">
-                        <img class="home-btn__img" src="images/icons/home_menu-icon-grey.png?v=bff5dfd2dc123faca233cb9d866bbc17">
+                        <img class="home-btn__img" src="images/icons/home_menu-icon-grey.png?v=14ee58cfa55a1d36168e8cc77eaecba4">
                     </div>
                     <div class="home-menu-header-right-block">
                         <div class="main-menu-header__title home-title" loc="home_menu"></div>
                         <div class="arrow-container home-menu-header-arrow-container arrow-container_grey-arrow">
-                            <img class="arrow-container__arrow-icon" src="images/icons/angle-arrow-pointing-to-right.png?v=bff5dfd2dc123faca233cb9d866bbc17">
+                            <img class="arrow-container__arrow-icon" src="images/icons/angle-arrow-pointing-to-right.png?v=14ee58cfa55a1d36168e8cc77eaecba4">
                         </div>
                     </div>
                 </div>
@@ -347,7 +336,7 @@
                     <div class="home-functions-container _firstly-open-block hidden">
                         <!--                    <div class="user-info">
                                                 <div class="user-avatar">
-                                                    <img class="user-avatar__img" src="images/icons/user.png?v=bff5dfd2dc123faca233cb9d866bbc17">
+                                                    <img class="user-avatar__img" src="images/icons/user.png?v=14ee58cfa55a1d36168e8cc77eaecba4">
                                                 </div>
                                                 <div class="login-container">
                                                     <div class="login-container__username">Jack Johnson</div>
@@ -358,11 +347,11 @@
                             <!--                        <div class="function-item-container">
                                                         <div class="func-item _archive" open-data="video-archive-container">
                                                             <div class="arrow-container arrow-container_violet-arrow">
-                                                                <img class="arrow-container__arrow-icon mirror-vertical" src="images/icons/angle-arrow-pointing-to-right.png?v=bff5dfd2dc123faca233cb9d866bbc17">
+                                                                <img class="arrow-container__arrow-icon mirror-vertical" src="images/icons/angle-arrow-pointing-to-right.png?v=14ee58cfa55a1d36168e8cc77eaecba4">
                                                             </div>
                                                             <div class="image-title-block">
                                                                 <div class="func-image">
-                                                                    <img class="func-image__img" src="images/icons/play-button.png?v=bff5dfd2dc123faca233cb9d866bbc17">
+                                                                    <img class="func-image__img" src="images/icons/play-button.png?v=14ee58cfa55a1d36168e8cc77eaecba4">
                                                                 </div>
                                                                 <div class="func-title-container">
                                                                     <a href="#" class="ch-item__name">Video archive</a>
@@ -373,11 +362,11 @@
                             <div class="function-item-container" func_id="parent-control">
                                 <div id='parent-control' class="func-item _parent_control" open-data="parent-control-container">
                                     <div class="arrow-container arrow-container_violet-arrow">
-                                        <img class="arrow-container__arrow-icon mirror-vertical" src="images/icons/angle-arrow-pointing-to-right.png?v=bff5dfd2dc123faca233cb9d866bbc17">
+                                        <img class="arrow-container__arrow-icon mirror-vertical" src="images/icons/angle-arrow-pointing-to-right.png?v=14ee58cfa55a1d36168e8cc77eaecba4">
                                     </div>
                                     <div class="image-title-block">
                                         <div class="func-image">
-                                            <img class="func-image__img" src="images/icons/smiling-baby.png?v=bff5dfd2dc123faca233cb9d866bbc17">
+                                            <img class="func-image__img" src="images/icons/smiling-baby.png?v=14ee58cfa55a1d36168e8cc77eaecba4">
                                         </div>
                                         <div class="func-title-container">
                                             <span href="#" class="ch-item__name cropper" loc="parental_control">Parental control</span>
@@ -388,11 +377,11 @@
                             <div class="function-item-container" func_id="settings">
                                 <div class="func-item _settings" open-data="settings-container">
                                     <div class="arrow-container arrow-container_violet-arrow">
-                                        <img class="arrow-container__arrow-icon mirror-vertical" src="images/icons/angle-arrow-pointing-to-right.png?v=bff5dfd2dc123faca233cb9d866bbc17">
+                                        <img class="arrow-container__arrow-icon mirror-vertical" src="images/icons/angle-arrow-pointing-to-right.png?v=14ee58cfa55a1d36168e8cc77eaecba4">
                                     </div>
                                     <div class="image-title-block">
                                         <div class="func-image">
-                                            <img class="func-image__img" src="images/icons/settings.png?v=bff5dfd2dc123faca233cb9d866bbc17">
+                                            <img class="func-image__img" src="images/icons/settings.png?v=14ee58cfa55a1d36168e8cc77eaecba4">
                                         </div>
                                         <div class="func-title-container">
                                             <span href="#" class="ch-item__name" loc="settings">Settings</span>
@@ -409,7 +398,7 @@
                         <div class="archives">
                             <div class="archive-item current-item">
                                 <div class="archive-item-img-container">
-                                    <img class="archive-item__img" src="images/inter.jpg?v=bff5dfd2dc123faca233cb9d866bbc17">
+                                    <img class="archive-item__img" src="images/inter.jpg?v=14ee58cfa55a1d36168e8cc77eaecba4">
                                 </div>
                                 <div class="archive-item-descr">
                                     <div class="achive-item__title cropper">Game of thrones</div>
@@ -425,7 +414,7 @@
                             </div>
                             <div class="archive-item">
                                 <div class="archive-item-img-container">
-                                    <img class="archive-item__img" src="images/Logo_Mega.png?v=bff5dfd2dc123faca233cb9d866bbc17">
+                                    <img class="archive-item__img" src="images/Logo_Mega.png?v=14ee58cfa55a1d36168e8cc77eaecba4">
                                 </div>
                                 <div class="archive-item-descr">
                                     <div class="achive-item__title cropper">Game of thrones Game of thrones</div>
@@ -448,17 +437,17 @@
                         <div class="form-block">
                             <div class="input-row">
                                 <input id="input-1" data="parent-input-1" type="password" class="parent-form__input password-input _current_pass _input_item" row="1" col="1" loc="current_pass" autocomplete="off" placeholder="Current password" maxlength="4">
-                                <div data="parent-showbtn-btn-1" class="show-pass-btn _show_pass_btn _input_item" data-attr="_current_pass" row="1" col="2"></div>
+                                <div data="parent-showbtn-btn-1" class="show-pass-btn _show_pass_btn  _input_item  " data-attr="_current_pass" row="1" col="2"></div>
                                 <div class="input-alert _input_alert hidden"></div>
                             </div>
                             <div class="input-row">
                                 <input id="input-2" data="parent-input-2" type="password" class="parent-form__input password-input _new_pass _input_item" row="2" col="1" loc="new_pass" autocomplete="off" placeholder="New password" maxlength="4">
-                                <div data="parent-showbtn-2" class="show-pass-btn _show_pass_btn _input_item" data-attr="_new_pass" row="2" col="2"></div>
+                                <div data="parent-showbtn-2" class="show-pass-btn _show_pass_btn  _input_item  " data-attr="_new_pass" row="2" col="2"></div>
                                 <div class="input-alert _input_alert hidden"></div>
                             </div>
                             <div class="input-row">
                                 <input id="input-3" data="parent-input-3" type="password" class="parent-form__input password-input _confirm_pass _input_item" row="3" col="1" loc="confirm_pass" autocomplete="off" placeholder="Confirm password" maxlength="4">
-                                <div data="parent-showbtn-3" class="show-pass-btn _show_pass_btn _input_item" data-attr="_confirm_pass" row="3" col="2"></div>
+                                <div data="parent-showbtn-3" class="show-pass-btn _show_pass_btn  _input_item  " data-attr="_confirm_pass" row="3" col="2"></div>
                                 <div class="input-alert _input_alert hidden"></div>
                             </div>
                             <div id='save-pc-btn' data="settings-btn" class="parent-form-btn parent-form__input settings-btn _save_pc_btn">
@@ -474,16 +463,16 @@
                                                 <div class="settings-title">Select your device</div>
                                                 <div class="devices-container">
                                                     <div class="device-item">
-                                                        <img class="device-item__img" src="images/mob_icon.png?v=bff5dfd2dc123faca233cb9d866bbc17">
+                                                        <img class="device-item__img" src="images/mob_icon.png?v=14ee58cfa55a1d36168e8cc77eaecba4">
                                                     </div>
                                                     <div class="device-item item-active">
-                                                        <img class="device-item__img" src="images/tablet_icon.png?v=bff5dfd2dc123faca233cb9d866bbc17">
+                                                        <img class="device-item__img" src="images/tablet_icon.png?v=14ee58cfa55a1d36168e8cc77eaecba4">
                                                     </div>
                                                     <div class="device-item">
-                                                        <img class="device-item__img" src="images/mob_icon.png?v=bff5dfd2dc123faca233cb9d866bbc17">
+                                                        <img class="device-item__img" src="images/mob_icon.png?v=14ee58cfa55a1d36168e8cc77eaecba4">
                                                     </div>
                                                     <div class="device-item">
-                                                        <img class="device-item__img" src="images/mob_icon.png?v=bff5dfd2dc123faca233cb9d866bbc17">
+                                                        <img class="device-item__img" src="images/mob_icon.png?v=14ee58cfa55a1d36168e8cc77eaecba4">
                                                     </div>
                                                 </div>
                                             </div>-->
@@ -493,7 +482,7 @@
                                 <div class="languages__item _lang_btn" lang="ua" loc="ukraine">Ukraine</div>
                                 <div class="languages__item _lang_btn" lang="en" loc="english">English</div>
                                 <!--<div class="languages__item _lang_btn" lang="pl" loc="poland">Poland</div>-->
-                                <div class="languages__item _lang_btn _lang_btn_default" lang="ru" loc="russian">Russia</div>
+                                <div class="languages__item _lang_btn lang_btn_default" lang="ru" loc="russian">Russia</div>
                             </div>
                         </div>
                         <div class="settings-btn">
@@ -548,6 +537,21 @@
                     </div>
                 </div>
             </div>
+
+            <div id='exit-popup' class="popup exit-popup hidden">
+                <div id='exit-popup-title' class="popup__title _confirm_title" loc="exit_app_title"></div>
+                <div class="form-block">
+                    <div class="popup-btns-container">
+                        <div id='exit-popup-cancel-btn' class="parent-form-btn settings-btn exit_popup-btn__cancel">
+                            <span loc="cancel_btn">Cancel</span>
+                        </div>
+                        <div id='exit-popup-confirm-btn' class="parent-form-btn settings-btn exit_popup-settings-btn__ok">
+                            <span loc="ok_btn">Ok</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
         </div>
-        <script src="js/script.min.js?v=bff5dfd2dc123faca233cb9d866bbc17"></script>
+        <script src="js/script.min.js?v=14ee58cfa55a1d36168e8cc77eaecba4"></script>
     </body>
