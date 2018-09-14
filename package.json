@@ -1,7 +1,7 @@
 {
-  "name": "Stalker.hls.tv",
-  "version": "0.0.5",
-  "description": "Webplayer Stalker APP",
+  "name": "OmegaTV",
+  "version": "1.0.0",
+  "description": "OmegaTV WebPlayer",
   "main": "index.js",
   "author": "",
   "license": "ISC",
@@ -29,5 +29,25 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/OmegaTV/stalker_classic.git"
+  },
+  "config": {
+    "type": "app",
+    "category": "apps",
+    "backgroundColor": "#171717",
+    "name": "OmegaTV",
+    "legacy": true,
+    "description": "OmegaTV Player",
+    "icons": {
+      "paths": {
+        "480": "images/favicons/",
+        "576": "images/favicons/",
+        "720": "images/favicons/",
+        "1080": "images/favicons/"
+      },
+      "states": {
+        "normal": "normal.png",
+        "active": "active.png"
+      }
+    }
   }
 }
