@@ -136,7 +136,7 @@
                 </div>
             </div>
 
-            <div id='all-controls-container' class="all-controls-container">
+            <div id='all-controls-container' class="all-controls-container hidden">
                 <div class="video-controls video-controls_violet">
                     <div class="video-controls-container video-controls_top">
                         <div id='btn-previous' class="video-controls__item _ctrl-row1 _active_btn">
@@ -252,14 +252,11 @@
                                     <div class="ch-item-progressbar-block">
                                         <input type="range" min="0" max="100" value="0" class="ch-item-progressbar _ch-item_progressbar _channels_progress" disabled>
                                     </div>
-                                    <!-- <div class="arrow-container ch-title-rating__arrow _render_epg_btn hidden">
-                                        <img class="" src="images/icons/angle-arrow-pointing-to-right.png?v=14ee58cfa55a1d36168e8cc77eaecba4">
-                                    </div> -->
                                 </div>
                                 <div class="arrow-block-item _render_epg_btn hidden">
-                                    <div class="arrow-container ch-title-rating__arrow">
-                                        <img class="" src="images/icons/angle-arrow-pointing-to-right.png?v=14ee58cfa55a1d36168e8cc77eaecba4">
-                                    </div>
+                                    <!--<div class="arrow-container ch-title-rating__arrow">-->
+                                        <!--<img class="" src="images/icons/angle-arrow-pointing-to-right.png?v=14ee58cfa55a1d36168e8cc77eaecba4">-->
+                                    <!--</div>-->
                                 </div>
                             </div>
                         </div>
@@ -344,36 +341,21 @@
                                                 </div>
                                             </div>-->
                         <div class="functions-list">
-                            <!--                        <div class="function-item-container">
-                                                        <div class="func-item _archive" open-data="video-archive-container">
-                                                            <div class="arrow-container arrow-container_violet-arrow">
-                                                                <img class="arrow-container__arrow-icon mirror-vertical" src="images/icons/angle-arrow-pointing-to-right.png?v=14ee58cfa55a1d36168e8cc77eaecba4">
-                                                            </div>
-                                                            <div class="image-title-block">
-                                                                <div class="func-image">
-                                                                    <img class="func-image__img" src="images/icons/play-button.png?v=14ee58cfa55a1d36168e8cc77eaecba4">
-                                                                </div>
-                                                                <div class="func-title-container">
-                                                                    <a href="#" class="ch-item__name">Video archive</a>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>-->
-                            <div class="function-item-container" func_id="parent-control">
-                                <div id='parent-control' class="func-item _parent_control" open-data="parent-control-container">
-                                    <div class="arrow-container arrow-container_violet-arrow">
-                                        <img class="arrow-container__arrow-icon mirror-vertical" src="images/icons/angle-arrow-pointing-to-right.png?v=14ee58cfa55a1d36168e8cc77eaecba4">
-                                    </div>
-                                    <div class="image-title-block">
-                                        <div class="func-image">
-                                            <img class="func-image__img" src="images/icons/smiling-baby.png?v=14ee58cfa55a1d36168e8cc77eaecba4">
-                                        </div>
-                                        <div class="func-title-container">
-                                            <span href="#" class="ch-item__name cropper" loc="parental_control">Parental control</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                            <!--<div class="function-item-container" func_id="parent-control">-->
+                                <!--<div id='parent-control' class="func-item _parent_control" open-data="parent-control-container">-->
+                                    <!--<div class="arrow-container arrow-container_violet-arrow">-->
+                                        <!--<img class="arrow-container__arrow-icon mirror-vertical" src="images/icons/angle-arrow-pointing-to-right.png?v=14ee58cfa55a1d36168e8cc77eaecba4">-->
+                                    <!--</div>-->
+                                    <!--<div class="image-title-block">-->
+                                        <!--<div class="func-image">-->
+                                            <!--<img class="func-image__img" src="images/icons/smiling-baby.png?v=14ee58cfa55a1d36168e8cc77eaecba4">-->
+                                        <!--</div>-->
+                                        <!--<div class="func-title-container">-->
+                                            <!--<span href="#" class="ch-item__name cropper" loc="parental_control">Parental control</span>-->
+                                        <!--</div>-->
+                                    <!--</div>-->
+                                <!--</div>-->
+                            <!--</div>-->
                             <div class="function-item-container" func_id="settings">
                                 <div class="func-item _settings" open-data="settings-container">
                                     <div class="arrow-container arrow-container_violet-arrow">
@@ -476,7 +458,7 @@
                                                     </div>
                                                 </div>
                                             </div>-->
-                        <div class="select-language select-device_padding">
+                        <div class="select-language select-device_padding hidden">
                             <div class="settings-title" loc="language">Language</div>
                             <div id='languages-container' class="languages">
                                 <div class="languages__item _lang_btn" lang="ua" loc="ukraine">Ukraine</div>
@@ -485,7 +467,11 @@
                                 <div class="languages__item _lang_btn lang_btn_default" lang="ru" loc="russian">Russia</div>
                             </div>
                         </div>
-                        <div class="settings-btn">
+                        <div id="serial-number-container" class="serial-number-container select-device_padding hidden">
+                            <div class="settings-title" loc="serial">Serial number</div>
+                            <div id="serial-number" class="serial-number">No UNIQ</div>
+                        </div>
+                        <div class="settings-btn hidden">
                             <div href="#" id='reset-settings-btn' class="settings-btn__item _reset_settings_btn" loc="reset_to_default">Reset to default</div>
                         </div>
                     </div>
