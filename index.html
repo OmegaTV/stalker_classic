@@ -4,37 +4,18 @@
         <title>OmegaTV</title>
         <meta charset="UTF-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" >
         <meta name="description" content="OmegaTV WebPlayer">
         <meta name="author" content="OmegaTV DevTeam">
         <meta name="apple-mobile-web-app-capable" content="yes">
         <meta name="apple-mobile-web-app-status-bar-style" content="black">
 
-        <!-- Favicons -->
-        <!--<link rel="shortcut icon" href="images/favicon.png" >-->
 
-        <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
-        <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
-        <!--[if lt IE 9]>
-        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js?v=14ee58cfa55a1d36168e8cc77eaecba4"></script>
-        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js?v=14ee58cfa55a1d36168e8cc77eaecba4"></script>
-        <![endif]-->
         <!-- build:webapisjs -->
         <!-- endbuild -->
 
         <!-- Custom CSS -->
-        <link rel="stylesheet" href="css/style.css?v=14ee58cfa55a1d36168e8cc77eaecba4" />
-        <script src="http://192.168.13.185:8080/target/target-script-min.js#anonymous"></script>
-        <meta name="web-app-title" content="OmegaTV">
-        <link rel="icon" href="images/favicons/Icon-App-76x76@1x.png" type="image/png">
-        <link rel="icon" href="images/favicons/Icon-App-20x20@1x.png">
-        <link rel="icon" sizes="29x29" href="images/favicons/Icon-App-29x29@1x.png">
-        <link rel="icon" sizes="40x40" href="images/favicons/Icon-App-40x40@1x.png">
-        <link rel="icon" sizes="50x50" href="images/favicons/Icon-Small-50x50@1x.png">
-        <link rel="icon" sizes="57x57" href="images/favicons/Icon-App-57x57@1x.png">
-        <link rel="icon" sizes="60x60" href="images/favicons/Icon-App-60x60@1x.png">
-        <link rel="icon" sizes="72x72" href="images/favicons/Icon-App-72x72@1x.png">
-        <link rel="icon" sizes="76x76" href="images/favicons/Icon-App-76x76@1x.png">
+        <link rel="stylesheet" href="css/style.css" />
+        <!--<script src="http://192.168.13.185:8080/target/target-script-min.js#anonymous"></script>-->
     </head>
     <body>
         <div id="activation-modal" class="activation-modal hidden">
@@ -57,14 +38,14 @@
                     <span class="modal-notifications__text-item" loc="days"></span>
                     <!--<div class="modal-notifications__text-item" loc="for_activation_tariff"></div>-->
                 </div>
-        
+
                 <div id="activation-tariff-text" class="content-container__item content-container__notifications modal-notifications">
                     <div class="modal-notifications__text-item" loc="for_activation_tariff"></div>
                 </div>
                 <div id="service-is-stopped" class="content-container__item content-container__notifications modal-notifications hidden">
                     <div class="modal-notifications__text-item" loc="service_is_stopped">Действие услуги приостановлено. Обратитесь к вашему оператору для продление услуги</div>
                 </div>
-        
+
                 <div id="activation-code-row" class="auth-content-container__item auth-content-container__activation-code activation-code-container input-row">
                     <div class="activation-code-container__input">
                         <input id="activation-code" placeholder="Enter activation code" maxlength="4" loc="enter_activation_code">
@@ -74,7 +55,7 @@
                     </div>
                     <div class="input-alert activation-code-container__alert _input_alert hidden"></div>
                 </div>
-                <div class="auth-content-container__item auth-content-container__error-btns error-btns hidden"> 
+                <div class="auth-content-container__item auth-content-container__error-btns error-btns hidden">
                     <div id="retry-btn" class="error-btns__item error-btns__item-left activation-modal-btn">
                         <span loc="retry_btn"></span>
                     </div>
@@ -543,4 +524,5 @@
 
         </div>
         <script src="js/script.min.js?v=14ee58cfa55a1d36168e8cc77eaecba4"></script>
+    <!--test!!!-->
     </body>
