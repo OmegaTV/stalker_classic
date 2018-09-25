@@ -972,9 +972,13 @@ img.errors-img-container__img._error_img {
 
 body {
     margin: 0;
-    background-color: #000;
+    /*background-color: #000;*/
     width: 100%
 }
+
+/*body {*/
+    /*background-color: transparent !important;*/
+/*}*/
 
 .main-content {
     position: relative;
