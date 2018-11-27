@@ -1,6 +1,6 @@
 {
-  "name": "OmegaTV",
-  "version": "1.0.0",
+  "name": "omegatv",
+  "version": "1.1.3",
   "description": "OmegaTV WebPlayer",
   "main": "index.js",
   "author": "",
@@ -23,8 +23,7 @@
     "gulp-version-number": "^0.1.7"
   },
   "dependencies": {
-    "npm": "^6.0.0",
-    "webplayer.desktop.hls.tv": "git+ssh://git@devserv.hls.tv:hls/webplayer.desktop.hls.tv.git#HLS-1439-stalker-deploy-branch"
+    "npm": "^6.0.0"
   },
   "repository": {
     "type": "git",

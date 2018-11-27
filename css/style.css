@@ -449,7 +449,7 @@ img.errors-img-container__img._error_img {
     font-size: 27px;
     height: 100px;
     clear: both;
-    cursor: pointer
+    position: relative;
 }
 
 .ch-item_active {
@@ -478,10 +478,6 @@ img.errors-img-container__img._error_img {
 
 .ch-item__title-rating {
     float: left
-}
-
-.ch-item:not(.ch-item_active) .arrow-container {
-    display: none
 }
 
 .ch-item-progressbar-block {
@@ -1022,7 +1018,11 @@ body {
   background-color: #001 !important; }
 
 .categories-container {
-    height: 600px !important;
+    height: 590px !important;
+    float: left;
+    width: 320px;
+    margin: 0;
+    overflow-y: scroll;
 }
 
 .channels-list-container {
@@ -1033,7 +1033,11 @@ body {
   width: 384px !important; }
 
 .program-list-container {
-  width: 320px !important; }
+    width: 320px !important;
+    float: left;
+    height: 650px;
+    overflow-y: scroll;
+}
 
 .home-functions-container,
 .settings-container {
@@ -1152,6 +1156,141 @@ body {
     margin: 0;
 }
 
+
+/*categories ----->  */
+.category-item-container {
+    height: 60px;
+    clear: both;
+}
+.category-item {
+    font-family: Comfortaa;
+    font-size: 20px;
+    width: 100%;
+    height: 60px;
+    margin: 0 auto;
+}
+.category-item__title {
+    display: inline-block;
+    float: left;
+    color: #fff;
+    height: 60px;
+    line-height: 60px;
+    width: 100%;
+    margin-left: 15px;
+}
+/* <---- categories*/
+
+/*epg arrows ----->  */
+.epg-arrow-container {
+    width: 40px;
+    height: 40px;
+    line-height: 65px;
+    border-radius: 50%;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    margin: auto;
+    right: 15px;
+    cursor: pointer;
+}
+.epg-arrow-container img {
+    height: 18px;
+    width: 14px;
+}
+.ch-item:not(.item-active) .epg-arrow-container,
+.ch-item.selected-item:not(.item-active) .epg-arrow-container {
+    display: none;
+}
+.ch-item.item-active .epg-arrow-container {
+    background-color: #704fcc;
+}
+/* <---- epg arrows*/
+
+/*epg ----->  */
+.one-epg-day {
+    color: #fff;
+    font-family: Comfortaa;
+    font-size: 20px;
+    width: 100%;
+    margin-bottom: 50px
+}
+
+.epg-day-title {
+    border-bottom: 1px solid #805ee0;
+    height: 35px;
+    margin-bottom: 30px;
+    margin-left: 40px
+}
+
+.epg-day-title__day-name {
+    color: #805ee0;
+    text-transform: capitalize
+}
+
+.epg-day-prog {
+    height: 50px;
+    line-height: 50px;
+    padding-right: 10px;
+    padding-left: 40px;
+    cursor: pointer;
+    clear: both
+}
+
+.epg-day-prog_active {
+    background-color: #2c2c2c;
+    border-radius: 2px
+}
+
+.epg-playing-logo {
+    width: 35px;
+}
+
+.epg-day-prog__time {
+    display: inline-block;
+    color: #6c6c6c;
+    width: 55px;
+    margin-left: 5px;
+    float: left
+}
+
+.epg-day-prog__name_title {
+    display: inline-block;
+    width: 60%;
+    position: relative;
+    height: 100%;
+    overflow: hidden
+}
+
+.epg-day-prog__name_more-about {
+    display: inline-block;
+    float: right;
+    width: 10px;
+    margin-right: 10px
+}
+
+._prog_epg_name {
+    position: absolute;
+    bottom: 0;
+    display: inline-block;
+    max-width: 100%;
+    width: initial!important
+}
+
+._prog_epg_name.cropper {
+    width: 100%
+}
+
+.epg-shadow-block {
+    position: fixed;
+    bottom: 0;
+    width: 25vw;
+    height: 90px;
+}
+
+.item-active .epg-day-prog__time {
+    color: #fff
+}
+/* <---- epg*/
 
 @media screen and (min-width: 1200px) and (max-width: 1300px) {
   .category-item__title {
