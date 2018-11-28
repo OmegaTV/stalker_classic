@@ -1292,6 +1292,40 @@ body {
 }
 /* <---- epg*/
 
+/*volumebar ----->  */
+.volumebar {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    top: 0;
+    z-index: 999999;
+}
+.volumebar-container {
+    background-color: #2d2d2d;
+    border-top-left-radius: 40px 40px;
+    border-bottom-left-radius: 40px 40px;
+    padding-top: 10px;
+    padding-right: 10px;
+    padding-bottom: 10px;
+    padding-left: 20px;
+    margin-top: 310px;
+    border: 2px solid white;
+    border-right: none !important;
+}
+.volumebar-icon {
+    width: 50px;
+    display: block;
+}
+.volumebar-text {
+    color: white;
+    display: block;
+    font-family: Comfortaa;
+    font-size: 28px;
+    text-align: center;
+}
+/* <---- volumebar*/
+
+
 @media screen and (min-width: 1200px) and (max-width: 1300px) {
   .category-item__title {
     width: 70% !important; } }
