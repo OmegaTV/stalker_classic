@@ -539,7 +539,7 @@ img.errors-img-container__img._error_img {
 }
 
 .ch-title-rating {
-    width: 350px;
+    width: 270px !important;
     height: 100px;
     position: relative
 }
