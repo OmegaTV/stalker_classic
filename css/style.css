@@ -1328,4 +1328,110 @@ body {
 
 @media screen and (min-width: 1200px) and (max-width: 1300px) {
   .category-item__title {
-    width: 70% !important; } }
+    width: 70% !important; }
+}
+
+
+
+/*for 720px screens*/
+@media screen and (max-width: 720px) {
+    .main-menu-header__title {
+        font-size: 16px !important;
+    }
+    .main-menu-hamburger {
+        top: 17px;
+        width: 40px !important;
+    }
+    .hamburger-icon {
+        height: 30px;
+    }
+
+    /*categories*/
+    .categories-container {
+        width: 180px !important;
+        height: 439px !important;
+    }
+    .category-item {
+        font-size: 16px;
+    }
+    .category-item__title {
+        margin-left: 5px;
+        width: 165px !important;
+    }
+
+    /*channels*/
+    .channels-list-container {
+        width: 216px !important;
+        height: 439px !important;
+    }
+    .ch-item {
+        font-size: 16px;
+        height: 60px;
+    }
+    .ch-title-rating {
+        width: 125px !important;
+    }
+    .ch-item__number {
+        width:45px !important;
+        height:60px !important;
+        line-height: 60px;
+    }
+    .ch-title-rating__title {
+        height: 60px;
+        line-height: 60px;
+    }
+    .epg-arrow-container {
+        height: 30px;
+        width: 30px;
+        right: 5px;
+    }
+
+    /*epg*/
+    .program-list-container {
+        width: 180px !important;
+        height: 439px !important;
+    }
+    .one-epg-day {
+        font-size: 15px;
+        margin-bottom: 35px;
+    }
+    .epg-day-title {
+        height: 25px;
+        margin-left: 5px;
+        font-size: 14px !important;
+        margin-bottom: 20px;
+    }
+    .epg-day-prog {
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+    }
+    .epg-day-prog__time {
+        width: 43px !important;
+    }
+
+    /*right menu*/
+    .home-functions-container,
+    .settings-container {
+        width: 180px !important;
+    }
+
+    .function-item-container {
+        height: 60px;
+    }
+    .func-image {
+        width: 50px;
+        height:60px !important;
+    }
+    .func-image__img {
+        height: 30px;
+        width: 30px;
+    }
+    .func-title-container {
+        width: 130px !important;
+        height: 60px !important;
+        line-height: 60px !important;
+    }
+    .func-title-container .ch-item__name {
+        font-size: 16px !important;
+    }
+}
