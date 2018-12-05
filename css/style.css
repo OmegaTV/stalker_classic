@@ -1410,6 +1410,24 @@ body {
     }
 
     /*right menu*/
+    .home-btn__img {
+        height: 30px;
+        top: 15px;
+    }
+    .home-menu-header-arrow-container {
+        float: right;
+        height: 45px;
+        margin-left: 10px;
+        margin-right: 5px;
+        margin-top: 7px;
+        width: 45px;
+    }
+    .arrow-container__arrow-icon {
+        height: 20px;
+        top: 30%;
+        width: 20px;
+    }
+
     .home-functions-container,
     .settings-container {
         width: 180px !important;
@@ -1433,5 +1451,13 @@ body {
     }
     .func-title-container .ch-item__name {
         font-size: 16px !important;
+    }
+
+    .settings-title {
+        font-size: 16px !important;
+        margin-bottom: 0;
+    }
+    .serial-number {
+        font-size: 14px !important;
     }
 }
