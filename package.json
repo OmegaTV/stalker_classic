@@ -38,10 +38,10 @@
     "description": "OmegaTV Player",
     "icons": {
       "paths": {
-        "480": "img/480/icons/",
-        "576": "img/576//icons/",
-        "720": "img/720/icons/",
-        "1080": "img/1080/icons/"
+        "480": "img/480/icons/2010.png",
+        "576": "img/576//icons/2010.png",
+        "720": "img/720/icons/2010.png",
+        "1080": "img/1080/icons/2014.png"
       },
       "states": {
         "normal": "normal.png",
