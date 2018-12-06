@@ -37,6 +37,14 @@
     "legacy": true,
     "description": "OmegaTV Player",
     "icons": {
+      "480": {
+        "logoNormal": "img/480/normal.png",
+        "logoActive": "img/480/active.png"
+      },
+      "576": {
+        "logoNormal": "img/576/normal.png",
+        "logoActive": "img/576/active.png"
+      },
       "720": {
         "logoNormal": "img/720/normal.png",
         "logoActive": "img/720/active.png"
