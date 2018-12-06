@@ -1479,4 +1479,10 @@ body {
         font-size: 15px;
         width: 70px !important;
     }
+
+    /*auth-popup*/
+    .activation-modal {
+        height: 576px !important;
+        font-size: 12px !important;
+    }
 }
