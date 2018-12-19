@@ -1026,7 +1026,8 @@ body {
 }
 
 .channels-list-container {
-  height: 650px !important;
+  /*height: 650px !important;*/
+    height: 580px !important;
 }
 
 .channels-list-container {
@@ -1035,7 +1036,8 @@ body {
 .program-list-container {
     width: 320px !important;
     float: left;
-    height: 650px;
+    /*height: 650px;*/
+    height: 580px;
     overflow-y: scroll;
 }
 
