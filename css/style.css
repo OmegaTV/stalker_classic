@@ -1328,6 +1328,24 @@ body {
 /* <---- volumebar*/
 
 
+/*search-menu ----->  */
+.search-menu {
+    height: 200px;
+    position: absolute;
+    right: 0px;
+    top: 50px;
+    width: 200px;
+    z-index: 2;
+}
+.search-value {
+    color: #805EE0;
+    font-family: Comfortaa;
+    font-size: 58px;
+    text-align: center;
+}
+/* <---- search-menu*/
+
+
 @media screen and (min-width: 1200px) and (max-width: 1300px) {
   .category-item__title {
     width: 70% !important; }
