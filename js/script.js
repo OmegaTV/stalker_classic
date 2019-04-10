@@ -299,7 +299,8 @@ localization = {
             m3u_error_text: "",
             epg_error_text: "",
             extEpg_error_text: "",
-            there_is_no_epg: "Недоступно"
+            there_is_no_epg: "Недоступно",
+            exit_app_title: "Ви дійсно хочете вийти із програми?"
         },
         en: {
             categories_tab: "Categories",
@@ -397,7 +398,8 @@ localization = {
             m3u_error_text: "",
             epg_error_text: "",
             extEpg_error_text: "",
-            there_is_no_epg: "Not available"
+            there_is_no_epg: "Not available",
+            exit_app_title:  "Are you sure you want to exit?"
         },
         ru: {
             categories_tab: "Категории",
@@ -495,7 +497,8 @@ localization = {
             m3u_error_text: "",
             epg_error_text: "",
             extEpg_error_text: "",
-            there_is_no_epg: "Недоступно"
+            there_is_no_epg: "Недоступно",
+            exit_app_title: "Вы действительно хотите выйти?"
         },
         pl: {
             categories_tab: "Kategorie",
@@ -593,7 +596,8 @@ localization = {
             m3u_error_text: "",
             epg_error_text: "",
             extEpg_error_text: "",
-            there_is_no_epg: "Not available"
+            there_is_no_epg: "Not available",
+            exit_app_title: "Czy na pewno chcesz wyjść?"
         }
     }
 };
@@ -761,6 +765,11 @@ Adapter.prototype.ifAboutTextNotScroll = function () {
 //открыть/закрыть категории каналов (обобщающая функция)
 Adapter.prototype.toggleCategories = function () {
     displayCategories();
+};
+
+//проверяем открыты ли категории
+Adapter.prototype.ifCategoriesOpened = function () {
+    return ifCategoriesOpened();
 };
 
 //открыть список категорий
@@ -1131,11 +1140,6 @@ Adapter.prototype.ifPassOnBlockEnterExist = function () {
 
 
 // Adapter 3.0
-//Проверяем или есть у текущего канала Епг
-Adapter.prototype.ifHasEpg = function () {
-    return ifHasEpg();
-};
-
 //Проверяем или есть у текущей передачи расширенное епг
 Adapter.prototype.ifHasExtendedEpg = function () {
     return ifHasExtendedEpg();
@@ -1287,6 +1291,8 @@ var favBtn = document.getElementById('fav-btn');
 var volumeBtn = document.getElementById('volume-btn');
 var fullScreenBtn = document.getElementById('fullscreen-btn');
 var progressbar = document.getElementById('_video_progressbar');
+var searchMenu = document.getElementById('search-menu');
+var searchMenuValue = document.getElementById('search-value');
 var mainMenu = document.getElementById('main-menu');
 var mainMenuTitle = document.getElementById('main-menu-title');
 var currentChInfoContainer = document.getElementById('current-channel');
@@ -1298,6 +1304,7 @@ var currentChProgram = document.getElementById('current-ch-program');
 var channelGroupsContainer = document.getElementById('channel-groups-container');
 var arrowsContainer = document.getElementById('arrows-container');
 var categoriesContainer = document.getElementById('categories-container');
+var categoryBlocked = document.getElementsByClassName('category_blocked')[0];
 var epgContainer = document.getElementById('epg-container');
 var moreAboutContainer = document.getElementById('more-about-container');
 var galleryContainer = document.getElementById('gallery-container');
@@ -1317,16 +1324,20 @@ var popupConfirmPass = document.getElementById('input-5');
 var popupCancelBtn = document.getElementById('popup-cancel-btn');
 var popupConfirmBtn = document.getElementById('popup-confirm-btn');
 var popupSavePassBtn = document.getElementById('popup-save-pass-btn');
+var exitPopup = document.getElementById('exit-popup');
+var exitPopupCancelBtn = document.getElementById('exit-popup-cancel-btn');
+var exitPopupConfirmBtn = document.getElementById('exit-popup-confirm-btn');
+var mainLoader = document.getElementById('main-loader');
+var volumeBar = document.getElementById('volumebar');
 var favorite_ch_key = 'favorite_ch:';
 var blocked_ch_key = 'blocked_ch:';
 var playlist = {};
 var reloadData = {};
 //play_timeout;
-var progressbar_timer;
 var successAlertTimer;
-var progressbarInitTimer;
 var channelScrollTimer; // для стрелок Епг
 var renredAllTimer;
+var searchChannelTimer;
 var allChannelsCount;
 var selectedCategory;
 var activeCategory;
@@ -1343,35 +1354,40 @@ var epg = {
     epg_key: 'epg_ch:',
     epg_index: 'epg_index:',
 
-    store: function (epg) {
+    store: function (epg, ch_id) {
         console.log('STORE-EPG');
         if (!Array.isArray(epg)) {
             console.error("Error: can't parse epg data");
             return false;
         }
 
-        stbStorage.clear();
+        // for (i=stbStorage.length; i>0; i--) {
+        //     var keyword = stbStorage.key(i-1);
+        //     var item = stbStorage.getItem(keyword);
+        //     console.log(item);
+        // }
+
+        var str = "epg",
+            storageLength = stbStorage.length;
+        for (i=storageLength; i>0; i--) {
+            if (stbStorage.key(i-1).indexOf(str) != -1) {
+                var keyword = stbStorage.key(i-1);
+                stbStorage.removeItem(keyword);
+            }
+        }
+        //stbStorage.clear();
         for (var ch_data_i in epg) {
             var ch_data = epg[ch_data_i];
-            var ch_id = ch_data.channel_id;
-            var epg_data_i = 0;
-
-            for (epg_data_i in ch_data.list) {
-                var epg_data = ch_data.list[epg_data_i];
-                var is_details = 0;
-                var store_data = [epg_data.start_at, epg_data.stop_at, epg_data.id, is_details, epg_data.title];
-                stbStorage.setItem(this.epg_key + ch_id + ':' + epg_data_i, store_data);
-            }
-
-            stbStorage.setItem(this.epg_index + ch_id, epg_data_i);
+            var is_details = 0;
+            var store_data = [ch_data.start_at, ch_data.stop_at, ch_data.id, is_details, ch_data.title];
+            stbStorage.setItem(this.epg_key + ch_id + ':' + ch_data_i, store_data);
+            stbStorage.setItem(this.epg_index + ch_id, ch_data_i);
         }
-        console.log(stbStorage.length);
     },
 
     searchProgram: function (ch_id, date) {
         var self = this;
         var searchTime = (date.getTime() / 1000) | 0;
-        //console.log(searchTime);
         var ch_data_i = stbStorage.getItem(this.epg_index + ch_id);
         if (!ch_data_i) {
             return null;
@@ -1382,7 +1398,6 @@ var epg = {
             item = item ? item.split(',', 5) : null;
 
             if (item && item[0] <= searchTime && item[1] >= searchTime) {
-                //console.log(item);
                 return item;
             }
         }
@@ -1579,7 +1594,7 @@ var selected_ch_id;
 //     adapter.openLeftMenu();
 //     var btn = this;
 //     if (btn.classList.contains('_hamburger_allblocked')) {
-//         document.getElementsByClassName('_category_blocked')[0].click();
+//         document.getElementsByClassName('category_blocked')[0].click();
 //     }
 // });
 
@@ -1680,7 +1695,7 @@ function setWidth(elem, width) {
     }
     thisElem.className = '';
     thisElem.className = newcl.join(" ");
-    thisElem.className = thisElem.className + " width-" + width;
+    thisElem.className = "width-" + width + " " + thisElem.className;
 }
 
 //Находясь на главном экране вызываем какую-либо из менюшек
@@ -1751,13 +1766,26 @@ var rightMenuItem = document.querySelectorAll('.archive-item');
 //For adapter
 //открыть левое меню
 function openLeftMenu() {
-//        dropProgressbar();
+    var activeChannel = null;
     menuFirstOpen("main-menu");
     setWidth("main-menu", 30);
-    if (document.getElementsByClassName('ch-item current-item')[0]) {
-        document.getElementsByClassName('ch-item current-item')[0].classList.add("ch-item_active", "item-active");
+    if (document.querySelectorAll('._channels_group:not(.hidden) .ch-item.item-active')[0]) {           //убираем фиолетовый фокус
+        document.querySelectorAll('._channels_group:not(.hidden) .ch-item.item-active')[0].classList.remove('item-active');
     }
-    document.getElementsByClassName('block-with-arrows')[0].classList.remove('hidden');
+    if (document.querySelectorAll('._channels_group:not(.hidden) .ch-item.current-item')[0]) {          //убираем у текущего канала плей-иконку
+        document.querySelectorAll('._channels_group:not(.hidden) .ch-item.current-item')[0].classList.remove('current-item');
+    }
+    var watchingChannelId = stbStorage.getItem('last_watched_ch');
+    if (watchingChannelId){
+        activeChannel = document.querySelectorAll('._channels_group:not(.hidden) .ch-item[_id="' + watchingChannelId + '"]')[0];
+    }
+    if (!watchingChannelId || !activeChannel) {
+        var activeChannel = document.querySelectorAll('._channels_group:not(.hidden) .ch-item:not(.hidden)')[0];
+    }
+    activeChannel.classList.add('item-active');
+    activeChannel.classList.add('current-item');
+    activeChannel.scrollIntoView();
+    mainMenuTitle.textContent = Player.prototype.renderCategoryName(categoriesContainer.querySelector('.category-item-container.current-item').getAttribute('_id')); //для перевода категории
 }
 
 //закрыть левое меню
@@ -1771,15 +1799,14 @@ function hideMainMenu() {
     for (i=0; i<elems.length; i++) {
         elems[i].classList.remove('hidden');
     }
-    if (document.getElementsByClassName('ch-item current-item')[0]) {
-        document.getElementsByClassName('ch-item current-item')[0].classList.add('item-active');
-    }
+    // if (document.getElementsByClassName('ch-item current-item')[0]) {
+    //     document.getElementsByClassName('ch-item current-item')[0].classList.add('item-active');
+    // }
     document.getElementsByClassName('main-menu-header')[0].getElementsByClassName('arrow-container__arrow-icon')[0].classList.add('mirror-vertical');
     elems = document.querySelectorAll(".ch-item:not(.current-item)");
     for (i=0; i<elems.length; i++) {
         elems[i].classList.remove('channel-opacity');
     }
-    document.getElementsByClassName('block-with-arrows')[0].classList.remove('block-with-arrows_55vw');
     document.getElementById('main-menu').classList.remove('open-categories');
     selected_ch_id = null;
     elems = document.querySelectorAll(".ch-item, .epg-day-prog");
@@ -1789,7 +1816,6 @@ function hideMainMenu() {
     //возобновляем счетчик плейбека
     var ch = video.getAttribute('_cid');
     var channel_obj = playlist.channels[ch];
-    Player.prototype.progressbar_init(channel_obj.id);
 }
 
 //Возвращаем скролл списка каналов в начальную точку
@@ -1802,7 +1828,7 @@ function clearChannelScroll() {
 //EPG
 //Проверяем или есть у текущего канала Епг
 function ifHasEpg() {
-    if (channelGroupsContainer.querySelector('.ch-item.item-active').classList.contains('_ch_with_epg')) {
+    if (channelGroupsContainer.querySelector('._channel.item-active').getAttribute('data-epg')) {
         return true;
     } else {
         return false;
@@ -1814,16 +1840,22 @@ function prevEpginList() {
     var epgList = document.querySelectorAll(".epg-day-prog:not(.hidden)");
     for (var i = 0; i < epgList.length; i++) {
         if (epgList[i].classList.contains("item-active")) {
-            document.getElementsByClassName("epg-day-prog item-active")[0].classList.remove("item-active");
+            var currentActive = document.getElementsByClassName("epg-day-prog item-active")[0];
+            currentActive.classList.remove("item-active");
+            currentActive.querySelector("marquee").classList.add('cropper');
             if (i != 0) {
                 epgList[i-1].classList.add("item-active");
+                epgList[i-1].classList.remove('cropper');
                 var activeEpg = document.querySelector('.epg-day-prog.item-active');
+                activeEpg.querySelector('marquee').classList.remove('cropper');
                 epgListScroll(activeEpg, 'prev');
                 break;
             }
             else {
                 var elems = document.querySelectorAll('._one_day_epg:not(.hidden)');
-                elems[0].querySelector('.epg-day-prog:not(.hidden)').classList.add("item-active");
+                var activeEpg = elems[0].querySelector('.epg-day-prog:not(.hidden)');
+                activeEpg.classList.add("item-active");
+                activeEpg.querySelector('marquee').classList.remove('cropper');
                 epgContainer.scrollIntoView();
                 break;
             }
@@ -1836,27 +1868,34 @@ function nextEpginList() {
     var epgList = document.querySelectorAll(".epg-day-prog:not(.hidden)");
     for (var i = 0; i < epgList.length; i++) {
         if (epgList[i].classList.contains("item-active")) {
-            document.getElementsByClassName("epg-day-prog item-active")[0].classList.remove("item-active");
-            if (i == (epgList.length-1)) {
-                epgList[0].classList.add("item-active");
-            } else {
+            var currentActive = document.getElementsByClassName("epg-day-prog item-active")[0];
+            currentActive.classList.remove("item-active");
+            currentActive.querySelector("marquee").classList.add('cropper');
+            if (i != (epgList.length-1)) {
                 epgList[i+1].classList.add("item-active");
                 break;
+            }
+            else {
+                epgList[i].classList.add("item-active");
             }
         }
     }
     var activeEpg = document.querySelector('.epg-day-prog.item-active');
+    activeEpg.querySelector("marquee").classList.remove('cropper');
     epgListScroll(activeEpg, 'next');
 }
 
 var epgContainerScroll = 0;
 function epgListScroll(currentEpg, direction) {
     var isVisible = checkIfVisible(currentEpg);
+    console.log(isVisible);
     if ((direction == 'next' && !isVisible) || direction == 'prev') {
         if (currentEpg.classList.contains('current-item')) {
+            console.log("iffff");
             epgContainerScroll = 0;
             epgContainer.scrollTop = epgContainerScroll;
         } else {
+            console.log("elseeeee");
             currentEpg.scrollIntoView();
             epgContainerScroll = currentEpg.getBoundingClientRect().top;
         }
@@ -1866,12 +1905,10 @@ function epgListScroll(currentEpg, direction) {
 //Возвращаем фокус на канал в списке после закрытия Епг
 function returnFocusOnChannel () {
     var ch_id = epgContainer.getAttribute('ch_id');
+    console.log(ch_id);
     var elem = document.querySelector('._channels_group:not(.hidden) .ch-item[_id="' + ch_id + '"]');
-    elem.classList.add('item-active');
-    if (elem.classList.contains('_ch_with_epg')) {
-        var id = elem.getAttribute('_id');
-        document.querySelector('._render_epg_btn[_id="' + id + '"]').classList.remove('hidden');
-    }
+    console.log(elem);
+    elem.classList.add(' item-active');
     adapter.hideEpgsBlocks();
     elem.classList.remove('selected-item');
     setWidth("main-menu",30);
@@ -1896,70 +1933,61 @@ function displayCategories() {
     }
 }
 
+//проверяем открыты ли категории
+function ifCategoriesOpened ()  {
+    if (categoriesContainer.classList.contains("hidden")) return false;
+    else return true;
+}
+
 //открываем список категорий
 function openCategories() {
-    var elems = document.querySelectorAll(".main-menu-container > div, ._render_epg_btn");
-    console.log(elems.length);
-    for (var i = 0; i< elems.length; i++) {
-        elems[i].classList.add("hidden");
-    }
-    elems = document.querySelectorAll(".categories-container, .channels-list-container, .block-with-arrows");
-    console.log(elems.length);
-    for (var i = 0; i< elems.length; i++) {
-        elems[i].classList.remove("hidden");
-    }
-    elems = document.querySelectorAll(".main-menu-header .arrow-container__arrow-icon");
-    console.log(elems.length);
-    for (var i = 0; i< elems.length; i++) {
-        elems[i].classList.remove("mirror-vertical");
-    }
+    document.getElementsByClassName('categories-container')[0].classList.remove("hidden");
+    var arrow = document.getElementsByClassName("main-menu-header-arrow-container")[0];
+    arrow.className = arrow.className.replace(/\bmirror-vertical\b/g, "");
     //Проверить работу этого при манипуляциях с блокировкой каналов ======>
-    if (!document.getElementsByClassName("category-item-container current-item")[0]) {
-        document.getElementsByClassName("_category_all")[0].classList.add("current-item");
-    }
+    // if (!document.getElementsByClassName("category-item-container current-item")[0]) {
+    //     document.getElementsByClassName("category_all")[0].classList.add(" current-item");
+    // }
     // <=======
     document.getElementsByClassName("category-item-container current-item")[0].classList.add("item-active");
-    document.getElementById('arrows-container').classList.add("block-with-arrows_55vw");
-    document.getElementById('main-menu').classList.add("open-categories");
-    // elems = document.querySelectorAll(".ch-item, .epg-day-prog");
-    // console.log(elems.length);
-    // for (var i = 0; i< elems.length; i++) {
-    //     elems[i].classList.remove("channel-opacity", "selected-item", "item-active");
-    // }
+    document.getElementsByClassName("category-item-container current-item")[0].scrollIntoView();
+    //var mainMenu = document.getElementById('main-menu');
+    //mainMenu.className += " open-categories";
     var elem = document.getElementsByClassName("ch-item item-active")[0];
-    elem.className = elem.className.replace(/\bitem-active\b/g, "");
+    if (elem) elem.className = elem.className.replace(/\bitem-active\b/g, "");
     setWidth("main-menu", 55);
 }
 
 //закрываем список категорий
 function closeCategories() {
     document.getElementById('categories-container').classList.add("hidden");
-    elems = document.querySelectorAll(".main-menu-header .arrow-container__arrow-icon");
-    for (var i = 0; i< elems.length; i++) {
-        elems[i].classList.add("mirror-vertical");
-    }
-    document.getElementById('arrows-container').classList.remove("block-with-arrows_55vw");
-    document.getElementById('main-menu').classList.remove("open-categories");
-    setWidth("main-menu", 30);
-    //очищаем инпуты парент контроля
-    removeFocusesFromParentInput();
+    //document.getElementById('main-menu').classList.remove("open-categories");
+    //setWidth("main-menu", 30);
 }
 
+var categoryListTimer;
 ///  Листаем список категорий вверх
 function prevCategoryInList() {
+    clearTimeout(categoryListTimer);
     var currentCat = document.getElementsByClassName('category-item-container item-active')[0];
     catListScroll(currentCat, 'prev');
     var categoriesList = document.querySelectorAll('.category-item-container:not(.hidden)');
+    hideCategoryContainers();
     for (var i = 0; i < categoriesList.length; i++) {
         if (categoriesList[i].classList.contains('item-active')) {
             currentCat.classList.remove('item-active');
             if (i != 0) {
-                categoriesList[i-1].classList.add('item-active');
-                adapter.openChoosenCategoryList(categoriesList[i-1]);
+                categoriesList[i - 1].classList.add('item-active');
+                categoryListTimer = setTimeout(function () {
+                    adapter.openChoosenCategoryList(categoriesList[i - 1]);
+                }, 500);
                 break;
-            } else {
-                categoriesList[categoriesList.length-1].classList.add('item-active');
-                adapter.openChoosenCategoryList(categoriesList[categoriesList.length-1]);
+            } else {                // если переходим с первой на последнюю категорию
+                categoriesList[categoriesList.length - 1].classList.add('item-active');
+                categoriesList[categoriesList.length - 1].scrollIntoView();
+                categoryListTimer = setTimeout(function () {
+                    adapter.openChoosenCategoryList(categoriesList[categoriesList.length - 1]);
+                }, 500);
                 break;
             }
         }
@@ -1968,24 +1996,39 @@ function prevCategoryInList() {
 
 //  Листаем список категорий вниз
 function nextCategoryInList() {
+    clearTimeout(categoryListTimer);
     var currentCat = document.getElementsByClassName('category-item-container item-active')[0];
     var categoriesList = document.querySelectorAll('.category-item-container:not(.hidden)');
+    hideCategoryContainers();
     for (var i = 0; i < categoriesList.length; i++) {
         if (categoriesList[i].classList.contains('item-active')) {
             currentCat.classList.remove('item-active');
-            if (i == (categoriesList.length - 1)) {
+            if (i == (categoriesList.length - 1)) {     // если переходим на первую категорию с последней
                 categoriesList[0].classList.add('item-active');
-                adapter.openChoosenCategoryList(categoriesList[0]);
+                if (!categoriesList[0].classList.contains('category_blocked')) {
+                    categoryListTimer = setTimeout(function () {
+                        adapter.openChoosenCategoryList(categoriesList[0]);
+                    }, 500);
+                }
                 break;
             } else {
                 categoriesList[i + 1].classList.add('item-active');
-                adapter.openChoosenCategoryList(categoriesList[i + 1]);
+                categoryListTimer = setTimeout(function () {
+                    adapter.openChoosenCategoryList(categoriesList[i + 1]);
+                }, 500);
                 break;
             }
         }
     }
     var currentCat = document.getElementsByClassName('category-item-container item-active')[0];
     catListScroll(currentCat, 'next');
+}
+
+function hideCategoryContainers() {
+    var channelGroups = channelGroupsContainer.getElementsByClassName('_channels_group');
+    for (var i = 0; i < channelGroups.length; i++) {
+        channelGroups[i].classList.add('hidden');
+    }
 }
 
 //  Проверка видимости элемента/айтема для скроллинга на ВебОси
@@ -2007,7 +2050,7 @@ function catListScroll(currentCat, direction) {
         currentCat.scrollIntoView();
         categoryContainerScroll = currentCat.getBoundingClientRect().top;
     } else if (direction == 'prev') {
-        if (currentCat.classList.contains('_category_all')) {
+        if (currentCat.classList.contains('category_all')) {
             var elems = currentCat.parentNode.querySelectorAll('.category-item-container:not(.hidden)');
             categoryContainerScroll = elems[elems.length - 1].getBoundingClientRect().top;
             categoriesContainer.scrollTop = categoryContainerScroll;
@@ -2037,18 +2080,31 @@ function setFirstChannelActive () {
         elems[i].classList.remove("item-active");
     }
     var firstChannel = document.querySelector('._channels_group:not(.hidden) .ch-item:not(.hidden)');
-    firstChannel.classList.add("ch-item_active", "item-active");
-    Player.prototype.channelMouseOver(firstChannel);
+    if (firstChannel) {
+        firstChannel.className += "  ch-item_active item-active ";
+        Player.prototype.channelMouseOver(firstChannel);
+    }
 }
 
 
 //Right Menu
 //открыть правое меню
 function openRightMenu() {
-//        dropProgressbar();
     menuFirstOpen("home-menu");
     setWidth("home-menu", 25);
     document.getElementsByClassName('function-item-container')[0].classList.add('item-active');
+}
+
+// Проверить открыто ли левое меню
+function ifLeftMenuOpened() {
+    if (mainMenu.classList.contains('hidden')) return false;
+    else return true;
+}
+
+// Проверить открыто ли правое меню
+function ifRightMenuOpened() {
+    if (homeMenu.classList.contains('hidden')) return false;
+    else return true;
 }
 
 //закрыть правое меню
@@ -2078,8 +2134,9 @@ function hideHomeMenu() {
     //возобновляем счетчик плейбека
     var ch = video.getAttribute('_cid');
     var channel_obj = playlist.channels[ch];
-    Player.prototype.progressbar_init(channel_obj.id);
+    savePcBtn.className = savePcBtn.className.replace(/\bactive\b/g, "");
     removeFocusesFromParentInput();
+
 }
 
 //листать пункты правого меню вниз
@@ -2146,6 +2203,7 @@ function rightInParentControl() {
         }
         var newCol = Number(indexes[1]) + 1;
         var query = '._input_item[row="' + Number(indexes[0]) + '"][col="' + newCol + '"]';
+        console.l
         document.querySelector(query).classList.add("active");
     }
 }
@@ -2234,6 +2292,7 @@ function getFocusedParentRight() {
 function rightMenuArrowClick() {
     var arrow = document.getElementsByClassName("home-menu-header-arrow-container")[0];
     if (arrow.classList.contains("mirror-vertical")) {
+        savePcBtn.className = savePcBtn.className.replace(/\bactive\b/g, "");
         var selectedRightMenuItem = document.querySelector(".function-item-container.selected-item");
         selectedRightMenuItem.classList.add("item-active");
         selectedRightMenuItem.classList.remove("selected-item");
@@ -2258,8 +2317,9 @@ function rightMenuArrowClick() {
 
 function toggleBtnClasses () {
     var activeRightMenuItem = document.querySelector(".function-item-container.item-active");
-    activeRightMenuItem.classList.add("selected-item");
-    activeRightMenuItem.classList.remove("item-active");
+    //activeRightMenuItem.classList.add("selected-item");
+    activeRightMenuItem.className = activeRightMenuItem.className.replace(/\bitem-active\b/g, "");
+    activeRightMenuItem.className += " selected-item";
 }
 
 //устанавливаем фокус на языках
@@ -2438,8 +2498,8 @@ function downPlaybackItem () {
     var activeItem = document.getElementsByClassName('video-controls__item active')[0];
     if (activeItem.classList.contains('_ctrl-row1')) {                      //  если мы сейчас в верхнем блоке плейбека
         activeItem.classList.remove('active');
-        if (activeItem.classList.contains('_btn_next')) {
-            document.getElementById('fav-btn').classList.add('active');
+        if (activeItem.classList.contains('_btn_next') && favBtn.classList.contains('_active_btn')) {
+            favBtn.classList.add('active');
         } else {
             document.getElementById('block-btn').classList.add('active');
         }
@@ -2487,7 +2547,7 @@ function rightInPopupPass() {
     var btnsContainer = document.getElementsByClassName("popup-btns-container")[0];
     if (btnsContainer.classList.contains("active")) {                       //если фокус сейчас на кнопках
         removeActiveFromPopupBtns();
-        availableBtns = document.querySelectorAll(".popup-btn:not(.hidden");
+        availableBtns = document.querySelectorAll(".popup-btn:not(.hidden)");
         availableBtns[availableBtns.length-1].classList.add("active");
     }
     else {
@@ -2601,9 +2661,10 @@ function getFocusedInputId () {
 
 //очищаем инпуты и глазы парент контроля от фокуса
 function removeFocusesFromParentInput () {
-    var inputs = document.getElementsByClassName('_input_item');
-    for (i = 0; i < inputs.length; i++) {
-        inputs[i].classList.remove('active');
+    var inputActive = document.getElementsByClassName('_input_item active');
+    //if(inputActive) inputActive.classList.remove('active');
+    for (i = 0; i < inputActive.length; i++) {
+        inputActive[i].classList.remove('active');
     }
 }
 
@@ -2836,7 +2897,7 @@ function removeFocusFromMenusIcons() {
 //Проверить или сохранен в текущей сессии пароль на блокировку канала
 function ifPassOnBlockExist () {
     var session;
-    if (sessionStorage.getItem('trusted_session_block')) {
+    if (playback.getSessionStorage('trusted_session_block')) {
         session = true;
     } else {
         session = false;
@@ -2847,7 +2908,7 @@ function ifPassOnBlockExist () {
 //Проверить или сохранен в текущей сессии пароль на разблокировку канала
 function ifPassOnUnblockExist () {
     var session;
-    if (sessionStorage.getItem('trusted_session_unblock')) {
+    if (playback.getSessionStorage('trusted_session_unblock')) {
         session = true;
     } else {
         session = false;
@@ -2858,7 +2919,7 @@ function ifPassOnUnblockExist () {
 //Проверить или сохранен в текущей сессии пароль на вход в категорию Блокированных
 function ifPassOnBlockEnterExist () {
     var session;
-    if (sessionStorage.getItem('trusted_session_enter')) {
+    if (playback.getSessionStorage('trusted_session_enter')) {
         session = true;
     } else {
         session = false;
@@ -2891,19 +2952,19 @@ Player = function () {
 
 //  Build url functions
 Player.prototype.buildBasicEpgURL = function (language) {
-    //return clientSettings.success.epg_v3 + clientSettings.success.playlist + EPG_URL_SUFFIX + EPG_LANG + language;
-    return 'https://cdnua01.hls.tv/epg/v3/' + '79fe07520e89862e02b2d00fecf02ca9' + EPG_URL_SUFFIX + EPG_LANG + language;            //  Для тестирования
+    return clientSettings.success.epg_v3 + clientSettings.success.playlist + EPG_URL_SUFFIX + EPG_LANG + language;
+    //return 'https://cdnua01.hls.tv/epg/v3/' + '79fe07520e89862e02b2d00fecf02ca9' + EPG_URL_SUFFIX + EPG_LANG + language;            //  Для тестирования
 };
 
 Player.prototype.buildChEpgURL = function (id, language, from, to) {
-    //return EPG_BASIC_URL + clientSettings.success.playlist + '/' + id + EPG_CH_URL_SUFFIX + EPG_LANG + language + EPG_FROM + from + EPG_TO + to;
-    return EPG_BASIC_URL + '79fe07520e89862e02b2d00fecf02ca9' + '/' + id + EPG_CH_URL_SUFFIX + EPG_LANG + language + EPG_FROM + from + EPG_TO + to; //  Для тестирования
+    return EPG_BASIC_URL + clientSettings.success.playlist + '/' + id + EPG_CH_URL_SUFFIX + EPG_LANG + language + EPG_FROM + from + EPG_TO + to;
+    //return EPG_BASIC_URL + '79fe07520e89862e02b2d00fecf02ca9' + '/' + id + EPG_CH_URL_SUFFIX + EPG_LANG + language + EPG_FROM + from + EPG_TO + to; //  Для тестирования
 
 };
 
 Player.prototype.buildMoreAboutURL = function (id, language) {
-    //return EPG_BASIC_URL + clientSettings.success.playlist + '/' + id + EPG_DETAIL_URL_SUFFIX + EPG_LANG + language + EPG_IMG + 'uhd';
-    return EPG_BASIC_URL + '79fe07520e89862e02b2d00fecf02ca9' + '/' + id + EPG_DETAIL_URL_SUFFIX + EPG_LANG + language + EPG_IMG + 'uhd';    //  Для тестирования
+    return EPG_BASIC_URL + clientSettings.success.playlist + '/' + id + EPG_DETAIL_URL_SUFFIX + EPG_LANG + language + EPG_IMG + 'uhd';
+    //return EPG_BASIC_URL + '79fe07520e89862e02b2d00fecf02ca9' + '/' + id + EPG_DETAIL_URL_SUFFIX + EPG_LANG + language + EPG_IMG + 'uhd';    //  Для тестирования
 
 };
 
@@ -2911,8 +2972,8 @@ Player.prototype.buildMoreAboutURL = function (id, language) {
 Player.prototype.getM3UJson = function (url) {
     var self = this;
     var xhr = new XMLHttpRequest();
-    //var url = clientSettings.success.playlist_url;
-    var url = 'https://cdnua01.hls.tv/play/79fe07520e89862e02b2d00fecf02ca9/list.json';                 //  Для тестирования
+    var url = clientSettings.success.playlist_url;
+    //var url = 'https://cdnua02.hls.tv/play/7b21d43a0227580479ecf02405a667f8/list.json';                 //  Для тестирования
     xhr.open('GET', url, true);
     //xhr.responseType = "json";
     xhr.onload = function() {
@@ -2922,6 +2983,13 @@ Player.prototype.getM3UJson = function (url) {
         self.switchChannel(playlist.channels[ch]);
         self.renderAll(playlist);
         self.firstLoadInit(ch);
+        //отрисовываем название текущей передачи
+        var lang = getLanguage();
+        var ch_id = videoContainer.getAttribute('ch_id');
+        var url = self.buildChEpgURL(ch_id, lang, 0, 0);
+        // self.loadEpg(url, function () {
+        //     self.initRename();
+        // });
     };
     xhr.onerror = function() {
         console.log( 'Ошибка ' + this.status );
@@ -2931,27 +2999,27 @@ Player.prototype.getM3UJson = function (url) {
 
 //  Обрабатываем JSON с epg
 Player.prototype.loadEpg = function (url, callback) {
-    // console.log("xhr started");
-    // var self = this;
-    // var xhr = new XMLHttpRequest();
-    // xhr.open('GET', url, true);
-    // //xhr.responseType = "json";
-    // xhr.onload = function() {
-    //     console.log("data received");
-    //     epg.store(JSON.parse(this.responseText));
-    //     console.log("data parsed");
-    //     if(xhr.readyState == 4 && xhr.status === 200) {
-    //         if (callback) {
-    //             callback();
-    //         }
-    //         self.initRename();
-    //     }
-    //     xhr.abort();
-    // };
-    // xhr.onerror = function() {
-    //     console.log( 'Ошибка ' + this.status );
-    // };
-    // xhr.send();
+    console.log("xhr started");
+    var self = this;
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', url, true);
+    //xhr.responseType = "json";
+    xhr.onload = function() {
+        console.log("data received");
+        var ch_id = videoContainer.getAttribute('ch_id');
+        epg.store(JSON.parse(this.responseText), ch_id);
+        if(xhr.readyState == 4 && xhr.status === 200) {
+            if (callback) {
+                callback();
+            }
+            //self.initRename();
+        }
+        xhr.abort();
+    };
+    xhr.onerror = function() {
+        console.log( 'Ошибка ' + this.status );
+    };
+    xhr.send();
 };
 
 //  Функция фильтрации каналов, возвращает список только hls каналов (отсеивание local каналов)
@@ -2981,51 +3049,36 @@ function filterByType(obj) {
 Player.prototype.firstLoadInit = function (ch) {
     var cgAll = document.getElementsByClassName('_channels_group')[1];
     cgAll.classList.remove('hidden');
-    var firstCh = cgAll.querySelectorAll('._channel')[1];
+    var firstCh = cgAll.querySelectorAll('.ch-item')[1];
     addClassCurrentItem(firstCh);
     video.setAttribute('_cid', ch);
     activeChannel = firstCh;
     this.hidePlaybackControls();
-    this.reloadTimer();
+    //this.reloadTimer();
 };
 
 Player.prototype.reloadTimer = function () {
-    var self = this;
-    clearTimeout(renredAllTimer);
-    renredAllTimer = setTimeout(function tick() {
-        console.log("reload!");
-        var cid = video.getAttribute('_cid');
-        var ganre_id = video.getAttribute('ganre_id');
-        var ch_id = video.getAttribute('ch_id');
-        var currentCategoryId = document.querySelector('._category.current-item').getAttribute('_id');
-        self.saveFocusedChannelId();
-        self.saveFocusedCategoryId();
-        self.renderAll(playlist, ganre_id, ch_id, currentCategoryId);
-        var num = document.getElementById('current-ch-number').textContent;
-        var channel_obj = playlist.channels[cid];
-        if (Number.isInteger(+ganre_id)) {
-            channel_obj = playlist.ganres[ganre_id].channels[cid];
-        }
-        self.renderChInfo(channel_obj, num);
-        self.progressbar_init(channel_obj.id, true);
-        if (!epgContainer.classList.contains('hidden')) {
-            var id = document.querySelector('._channel.selected-item').getAttribute('_id');
-            if (document.querySelector('.epg-day-prog.selected-item')) {
-                reloadData.selectProgId = document.querySelector('.epg-day-prog.selected-item').getAttribute('id');
-            }
-            var reload = true;
-            self.renderEpg(id, reload);
-        }
-        if (reloadData.selectProgId) {
-            document.getElementById(reloadData.selectProgId).classList.add('selected-item');
-        }
-        renredAllTimer = setTimeout(tick, 9999999999);
-    }, 9999999999);
+    // var self = this;
+    // clearTimeout(renredAllTimer);
+    // renredAllTimer = setTimeout(function tick() {
+    //     console.log("reload!");
+    //     var cid = video.getAttribute('_cid');
+    //     var ganre_id = video.getAttribute('ganre_id');
+    //     var num = document.getElementById('current-ch-number').textContent;
+    //     if (ganre_id != 'all' && ganre_id != 'blocked' && ganre_id != 'favorites') {
+    //         var channel_obj = playlist.ganres[ganre_id].channels[cid];
+    //     }
+    //     else {
+    //         var channel_obj = playlist.channels[cid];
+    //     }
+    //     self.renderChInfo(channel_obj, num);
+    //     renredAllTimer = setTimeout(tick, 60000);
+    // }, 60000);
 };
 
 Player.prototype.saveFocusedChannelId = function () {
-    if (document.querySelector('._channel.item-active')) {
-        var chItemActive = document.querySelector('._channel.item-active');
+    if (document.querySelector('.ch-item.item-active')) {
+        var chItemActive = document.querySelector('.ch-item.item-active');
         reloadData.channelItemActiveId = chItemActive.getAttribute('_id');
         reloadData.channelItemActiveGanre = chItemActive.getAttribute('ganre_id');
     } else {
@@ -3045,12 +3098,44 @@ Player.prototype.saveFocusedCategoryId = function () {
 //  Определяем канал для выбора при первичной загрузке
 Player.prototype.channelForFirstLoad = function (channels) {
     var channelIndex = 0;
+    var chIdForFirstLoad = false;
+    if (this.getLastWatchedCh()) {
+        chIdForFirstLoad = Number(this.getLastWatchedCh());
+    }
+
     if (channels) {
-        for (var i = 0; i < channels.length; i++) {
+        var channelsLength = channels.length;
+        for (var i = 0; i < channelsLength; i++) {
             var blocked = this.searchBlockedCh(channels[i].id);
-            if (!blocked) {
-                channelIndex = i;
-                return channelIndex;
+            if (!chIdForFirstLoad) {                                        // Если нет "последнего проигрываемого канала" в памяти приложения
+                if (!blocked) {                                             // Если канал не blocked
+                    channelIndex = i;
+                    return channelIndex;
+                }
+                if ((i + 1) === channelsLength) {                           // Если мы прошли все итерации и ничего не вернули - значит все каналы заблокированны
+                    return channelIndex;
+                }
+            } else {                                                        // Если есть "последний проигрываемый канал" в памяти приложения
+                if (channels[i].id === chIdForFirstLoad) {                  // Поиск "последнего проигрываемого канала" в списке каналов с бекенда
+                    var blocked = this.searchBlockedCh(channels[i].id);
+                    if (blocked) {
+                        chForFirstLoadIsBlocked = true;
+                    }
+                    channelIndex = i;
+                    return channelIndex;
+                }
+                if ((i + 1) === channelsLength) {                           // Если "последний проигрываемый канал" есть в памяти но его нет в новом списке каналов с бекенда
+                    for (var i = 0; i < channelsLength; i++) {              // Заново "пробегаемся" по списку из каналов, что бы вернуть индекс подходящего
+                        var blocked = this.searchBlockedCh(channels[i].id);
+                        if (!blocked) {                                     // Если канал не blocked
+                            channelIndex = i;
+                            return channelIndex;
+                        }
+                        if ((i + 1) === channelsLength) {                   // Если мы прошли все итерации и ничего не вернули - значит все каналы заблокированны
+                            return channelIndex;
+                        }
+                    }
+                }
             }
         }
     }
@@ -3059,13 +3144,17 @@ Player.prototype.channelForFirstLoad = function (channels) {
 
 //  Выбираем канал
 Player.prototype.switchChannel = function (channel_obj, num, ganre_id, cid) {
+    var ch_obj = channel_obj;
+    var self = this;
     var number;
     if (num)
         number = num;
     var category = 'all';
     if (ganre_id)
         category = ganre_id;
-    this.renderChInfo(channel_obj, number);                                      //  Здесь записываем инфу про видео вверху экрана
+    //this.renderChInfo(channel_obj, number);                                      //  Здесь записываем инфу про видео вверху экрана
+    currentChCategory.textContent = this.renderCategoryName(ganre_id);
+    mainMenuTitle.textContent = this.renderCategoryName(ganre_id);
     var lang = getLanguage();
     var category_loc = localization.langs[lang];
     currentChCategory.setAttribute('loc', 'category_' + category);
@@ -3073,11 +3162,21 @@ Player.prototype.switchChannel = function (channel_obj, num, ganre_id, cid) {
     mainMenuTitle.textContent = category_loc['category_' + category];
     this.renderFavoriteBtn(channel_obj.id);                                      //  Здесь записуем является ли канал фаворитс или нет и в соответствии проставляем нужную кнопку фаворитс
     this.renderBlockedBtn(channel_obj.id);                                       //  Здесь записуем является ли канал блокед или нет и в соответствии проставляем нужную кнопку блокед
-    this.progressbar_init(channel_obj.id);                                       //  Здесь инициализируем прогресбар
+    this.setLastWatchedCh(channel_obj.id);
     video.setAttribute('ch_id', channel_obj.id);
     video.setAttribute('ganre_id', category);
     video.setAttribute('_cid', cid);
-    playback.channelSwitch(channel_obj.link);
+    //отрисовываем название текущей передачи
+    var lang = getLanguage();
+    var ch_id = videoContainer.getAttribute('ch_id');
+    var url = this.buildChEpgURL(ch_id, lang, 0, 0);
+    // this.loadEpg(url);
+    // this.loadEpg(url, function () {
+    //     self.renderChInfo(ch_obj, number);
+    // });
+    var videoLink = channel_obj.link.replace(/https/, "http");
+    playback.channelSwitch(videoLink);
+    //playback.channelSwitch(channel_obj.link);
 };
 
 //  Рендерим информацию про проигрываемое на текущий момент видео (вверху экрана)
@@ -3089,7 +3188,6 @@ Player.prototype.renderChInfo = function (channel, num) {
     if (num) {
         prog_number = num;
     }
-    console.log(num);
     currentChLogo.setAttribute('src', channel.logo);
     currentChNumber.textContent = prog_number;
     currentChName.textContent = channel.name;
@@ -3111,54 +3209,49 @@ Player.prototype.renderAll = function (playlist, ganre_id, activeChannelId, curr
     var blocked_container = containerTpl.cloneNode(true);
     for (var item_i in playlist.channels) {
         var ch_obj = playlist.channels[item_i];
-        var blocked = this.searchBlockedCh(ch_obj.id);
-        if (!blocked) {
+        // var blocked = this.searchBlockedCh(ch_obj.id);
+        // if (!blocked) {
             // Рендерим этот канал в категорию all channels -->
-            var allChTpl = all_container.getElementsByClassName('_channel')[0];
+            var allChTpl = all_container.getElementsByClassName('ch-item')[0];
             var all_channel = allChTpl.cloneNode(true);
             var ganreId = 'all';
             this.renderChannelItem(all_channel, ch_obj, epgMode, item_i, ganreId);
             all_channel.classList.remove('hidden');
             all_container.appendChild(all_channel);
-            var is_favorites = this.searchFavoriteCh(ch_obj.id);
-            if (is_favorites) {
-                all_channel.getElementsByClassName('rating-container__favorites')[0].style.opacity = '1';
-                // Рендерим этот канал в категорию favorites -->
-                var favChTpl = favorit_container.getElementsByClassName('_channel')[0];
-                var fav_channel = favChTpl.cloneNode(true);
-                var ganreId = 'favorites';
-                this.renderChannelItem(fav_channel, ch_obj, epgMode, item_i, ganreId);
-                fav_channel.getElementsByClassName('rating-container__favorites')[0].style.opacity = '1';
-                fav_channel.classList.remove('hidden');
-                favorit_container.appendChild(fav_channel);
-            }
-        } else {
-            // Рендерим этот канал в категорию blocked -->
-            var blockedChTpl = blocked_container.getElementsByClassName('ch-item')[0];
-            var blocked_channel = blockedChTpl.cloneNode(true);
-            var ganreId = 'blocked';
-            this.renderChannelItem(blocked_channel, ch_obj, epgMode, item_i, ganreId);
-            blocked_channel.classList.remove('hidden');
-            blocked_container.appendChild(blocked_channel);
-        }
-        var arrows_container = document.getElementsByClassName("_arrow_container")[0];
-        var arrowBlockTpl = arrows_container.getElementsByClassName('arrow-block-item')[0];
-        var arrow_block = arrowBlockTpl.cloneNode(true);
-        arrow_block.setAttribute('_id', ch_obj.id);
-        arrow_block.setAttribute('_cid', item_i);
-        arrows_container.appendChild(arrow_block);
+            // var is_favorites = this.searchFavoriteCh(ch_obj.id);
+            // if (is_favorites) {
+            //     all_channel.getElementsByClassName('rating-container__favorites')[0].style.opacity = '1';
+            //     // Рендерим этот канал в категорию favorites -->
+            //     //this.renderToFavorites(favorit_container, ch_obj, epgMode, item_i, ganreId);
+            //     var favChTpl = favorit_container.getElementsByClassName('ch-item')[0];
+            //     var fav_channel = favChTpl.cloneNode(true);
+            //     var ganreId = 'favorites';
+            //     this.renderChannelItem(fav_channel, ch_obj, epgMode, item_i, ganreId);
+            //     fav_channel.getElementsByClassName('rating-container__favorites')[0].style.opacity = '1';
+            //     fav_channel.classList.remove('hidden');
+            //     favorit_container.appendChild(fav_channel);
+            // }
+        // } else {
+        //     // Рендерим этот канал в категорию blocked -->
+        //     var blockedChTpl = blocked_container.getElementsByClassName('ch-item')[0];
+        //     var blocked_channel = blockedChTpl.cloneNode(true);
+        //     var ganreId = 'blocked';
+        //     this.renderChannelItem(blocked_channel, ch_obj, epgMode, item_i, ganreId);
+        //     blocked_channel.classList.remove('hidden');
+        //     blocked_container.appendChild(blocked_channel);
+        // }
     }
     all_container.setAttribute('ganre_id', 'all');
     channelGroupsContainer.appendChild(all_container);
-    this.renderChannelIndexNumber(all_container);
+    // this.renderChannelIndexNumber(all_container);
 
-    favorit_container.setAttribute('ganre_id', 'favorites');
-    channelGroupsContainer.appendChild(favorit_container);
-    this.renderChannelIndexNumber(favorit_container);
-
-    blocked_container.setAttribute('ganre_id', 'blocked');
-    channelGroupsContainer.appendChild(blocked_container);
-    this.renderChannelIndexNumber(blocked_container);
+    // favorit_container.setAttribute('ganre_id', 'favorites');
+    // channelGroupsContainer.appendChild(favorit_container);
+    // this.renderChannelIndexNumber(favorit_container);
+    //
+    // blocked_container.setAttribute('ganre_id', 'blocked');
+    // channelGroupsContainer.appendChild(blocked_container);
+    // this.renderChannelIndexNumber(blocked_container);
 
     // Рендерим каналы из каждой категории
     for (var ganre_i in playlist.ganres) {
@@ -3170,7 +3263,7 @@ Player.prototype.renderAll = function (playlist, ganre_id, activeChannelId, curr
             var item = ganre.channels[ch_i];
             var blocked = this.searchBlockedCh(item.id);
             if (!blocked) {
-                var channelTpl = container.getElementsByClassName('_channel')[0];
+                var channelTpl = container.getElementsByClassName('ch-item')[0];
                 var channel = channelTpl.cloneNode(true);
                 this.renderChannelItem(channel, item, epgMode, ch_i);
                 channel.classList.remove('hidden');
@@ -3182,67 +3275,75 @@ Player.prototype.renderAll = function (playlist, ganre_id, activeChannelId, curr
             }
         }
         channelGroupsContainer.appendChild(container);
-        this.renderChannelIndexNumber(container);
+        // this.renderChannelIndexNumber(container);
     }
     if (selected_ch_id) {
         var channel = document.querySelector('.ch-item[_id="' + selected_ch_id + '"]');
         channel.classList.add('selected-item');
     }
-    this.toggleFavoritesCategory();
-    this.toggleBlockedCategory();
-    this.toggleAllCategory();
-    this.switchCategoryVisibility(playlist.ganres);
-    if (ganre_id) {
-        // if (!document.getElementsByClassName("category-item-container current-item")[0]) {
-        //     document.getElementsByClassName("_category_all")[0].classList.add("current-item");
-        // }
-        if (document.querySelector('.category-item-container.current-item')) {
-            var category = document.querySelector('.category-item-container.current-item').getAttribute('category');
-        }
-        if (allChannelsCount === 0) {
-            blocked_container.classList.remove('hidden');
-        } else {
-            if (currentCategoryId) {
-                var currentChGroup = document.querySelector('._channels_group[ganre_id="' + currentCategoryId + '"]');
-                currentChGroup.classList.remove('hidden');
-                var currentCategory = document.querySelector('._category[_id="' + currentCategoryId + '"]');
-                currentCategory.classList.add('current-item');
-            } else if (category == 'favorites') {
-                var favoritesChGroup = document.querySelector('._channels_group[ganre_id="favorites"]');
-                favoritesChGroup.classList.remove('hidden');
-            } else if (category == 'blocked') {
-                var blockedChGroup = document.querySelector('._channels_group[ganre_id="blocked"]');
-                blockedChGroup.classList.remove('hidden');
-            } else {
-                var allChGroup = document.querySelector('._channels_group[ganre_id="all"]');
-                allChGroup.classList.remove('hidden');
-                var currentCategory = document.querySelector('._category[_id="' + ganre_id + '"]');
-                currentCategory.classList.add('current-item');
-            }
-        }
-        if (activeChannelId) {
-            var activeChGroup = channelGroupsContainer.querySelector('._channels_group[ganre_id="' + ganre_id + '"]');
-            var activeCh = activeChGroup.querySelector('.ch-item[_id="' + activeChannelId + '"]');
-            activeCh.classList.add('current-item');
-        }
-    }
-    if (reloadData.channelItemActiveId) {
-        var channelActive = channelGroupsContainer.querySelector('.ch-item[ganre_id="' + reloadData.channelItemActiveGanre + '"][_id="' + reloadData.channelItemActiveId + '"]');
-        if (channelActive) {
-            channelActive.classList.add('item-active');
-        }
-        if (arrowsContainer.querySelector('.arrow-block-item[_id="' + reloadData.channelItemActiveId + '"]')) {
-            arrowsContainer.querySelector('.arrow-block-item[_id="' + reloadData.channelItemActiveId + '"]').classList.remove('hidden');
-        }
-    }
-    if (reloadData.categoryItemActiveId) {
-        categoriesContainer.querySelector('.category-item-container[_id="' + reloadData.categoryItemActiveId + '"]').classList.add('item-active');
-
-    }
+    // this.toggleFavoritesCategory();
+    // this.toggleBlockedCategory();
+    // this.toggleAllCategory();
+    // this.switchCategoryVisibility(playlist.ganres);
+    // if (ganre_id) {
+    //     // if (!document.getElementsByClassName("category-item-container current-item")[0]) {
+    //     //     document.getElementsByClassName("category_all")[0].classList.add("current-item");
+    //     // }
+    //     if (document.querySelector('.category-item-container.current-item')) {
+    //         var category = document.querySelector('.category-item-container.current-item').getAttribute('category');
+    //     }
+    //     if (allChannelsCount === 0) {
+    //         blocked_container.classList.remove('hidden');
+    //     } else {
+    //         if (currentCategoryId) {
+    //             var currentChGroup = document.querySelector('._channels_group[ganre_id="' + currentCategoryId + '"]');
+    //             currentChGroup.classList.remove('hidden');
+    //             var currentCategory = document.querySelector('.category[_id="' + currentCategoryId + '"]');
+    //             currentCategory.classList.add('  current-item');
+    //         } else if (category == 'favorites') {
+    //             var favoritesChGroup = document.querySelector('._channels_group[ganre_id="favorites"]');
+    //             favoritesChGroup.classList.remove('hidden');
+    //         } else if (category == 'blocked') {
+    //             var blockedChGroup = document.querySelector('._channels_group[ganre_id="blocked"]');
+    //             blockedChGroup.classList.remove('hidden');
+    //         } else {
+    //             var allChGroup = document.querySelector('._channels_group[ganre_id="all"]');
+    //             allChGroup.classList.remove('hidden');
+    //             var currentCategory = document.querySelector('.category[_id="' + ganre_id + '"]');
+    //             currentCategory.classList.add(' current-item');
+    //         }
+    //     }
+    //     if (activeChannelId) {
+    //         var activeChGroup = channelGroupsContainer.querySelector('._channels_group[ganre_id="' + ganre_id + '"]');
+    //         var activeCh = activeChGroup.querySelector('.ch-item[_id="' + activeChannelId + '"]');
+    //         activeCh.classList.add(' current-item');
+    //     }
+    // }
+    // console.log(reloadData.channelItemActiveId);
+    // if (reloadData.channelItemActiveId) {
+    //     var channelActive = channelGroupsContainer.querySelector('.ch-item[ganre_id="' + reloadData.channelItemActiveGanre + '"][_id="' + reloadData.channelItemActiveId + '"]');
+    //     if (channelActive) {
+    //         channelActive.classList.add('item-active');
+    //     }
+    // }
+    // if (reloadData.categoryItemActiveId) {
+    //     categoriesContainer.querySelector('.category-item-container[_id="' + reloadData.categoryItemActiveId + '"]').classList.add('item-active');
+    //
+    // }
 //        var epgArrows = document.querySelectorAll('._render_epg_btn');
 //        for (var i = 0; i < epgArrows.length; i++) {
 //            epgArrows[i].classList.add('hidden');
 //        }
+};
+
+Player.prototype.renderToFavorites = function (favorit_container, ch_obj, epgMode, item_i, ganreId) {
+    var favChTpl = document.querySelector('._channels_group[ganre_id="favorites"] .ch-item');
+    var fav_channel = favChTpl.cloneNode(true);
+    var ganreId = 'favorites';
+    this.renderChannelItem(fav_channel, ch_obj, epgMode, item_i, ganreId);
+    fav_channel.getElementsByClassName('rating-container__favorites')[0].style.opacity = '1';
+    fav_channel.classList.remove('hidden');
+    document.querySelector('._channels_group[ganre_id="favorites"]').appendChild(fav_channel);
 };
 
 Player.prototype.renderChannelItem = function  (channel, data, epgMode, i, ganre_id) {
@@ -3255,41 +3356,34 @@ Player.prototype.renderChannelItem = function  (channel, data, epgMode, i, ganre
     } else {
         channel.setAttribute('ganre_id', data.ganre.id);
     }
-    channel.getElementsByClassName('_ch_img')[0].setAttribute('src', data.logo);
+    if (data.key) {
+        channel.setAttribute('_key', data.key);
+        channel.getElementsByClassName('_ch_number')[0].textContent = data.key;
+    }
+    //channel.getElementsByClassName('_ch_img')[0].setAttribute('src', data.logo);
     channel.getElementsByClassName('_ch_name')[0].textContent = data.name;
+    //console.log(epgStatus);
     if (epgStatus) {
         var program = epg.searchProgram(data.id, new Date());
+        //console.log(program);
         if (program) {
             if (epgMode != 1) {
-                channel.classList.add('_ch_with_epg');
+                channel.setAttribute('data-epg', 1);
             }
-            var chName = channel.getElementsByClassName('_ch_name')[0];
-            chName.textContent = program[4];
         }
-        this.channelsProgressInit(channel, data.id);
     }
-};
-
-//  Указываем порядковый номер канала в виводимом кликнту списке
-Player.prototype.renderChannelIndexNumber = function (container) {
-    var channels = container.querySelectorAll('.ch-item:not(.hidden)');
-    for (var i = 0; i < channels.length; i++) {
-        channels[i].getElementsByClassName('_ch_number')[0].textContent = i + 1;
-    }
+    channel.getElementsByClassName('epg-arrow-container')[0].classList.remove('hidden');
 };
 
 Player.prototype.initRename = function () {
-    this.firstLoadRenamePrograms();
     var ch = video.getAttribute('_cid');
     var channel_obj = playlist.channels[ch];
     this.renderChInfo(channel_obj);
-    // this.progressbar_init(channel_obj.id);
 };
 
 Player.prototype.firstLoadRenamePrograms = function () {
     var epgMode = this.getEpgMode();
     var channels = channelGroupsContainer.querySelectorAll('.ch-item:not(.hidden)');
-    console.log(channels.length);
     for (var i = 0; i < channels.length; i++) {
         var channel = channels[i];
         var ch_id = channel.getAttribute('_id');
@@ -3297,34 +3391,63 @@ Player.prototype.firstLoadRenamePrograms = function () {
         if (epgMode) {
             if (program) {
                 if (epgMode != 1) {
-                    channel.classList.add('_ch_with_epg');
+                    channel.setAttribute('data-epg', 1);
                 }
                 channel.getElementsByClassName('_ch_name')[0].textContent = program[4];
                 channel.getElementsByClassName('_channels_progress')[0].classList.remove('hidden');
             }
-            //this.channelsProgressInit(channel, ch_id);
         }
     }
 };
 
 //  Рендерим список категорий
 Player.prototype.renderCategory = function (item) {
-    var categoryTpl = categoriesContainer.getElementsByClassName('_category')[0];
+    var categoryTpl = categoriesContainer.getElementsByClassName('category')[0];
     var category = categoryTpl.cloneNode(true);
     category.setAttribute('_id', item.id);
-    category.getElementsByClassName('_category_img')[0].setAttribute('src', item.icon.uhd);
-    var lang = getLanguage();
-    var category_loc = localization.langs[lang];
-    var categoryName = category.getElementsByClassName('_category_name')[0];
-    categoryName.setAttribute('loc', 'category_' + item.id);
-    categoryName.textContent = category_loc['category_' + item.id];
-    category.classList.remove('_category_all');
+    //category.getElementsByClassName('_category_img')[0].setAttribute('src', item.icon.uhd);
+    var categoryName = this.renderCategoryName(item.id);
+    category.getElementsByClassName('_category_name')[0].textContent = categoryName;
+    category.getElementsByClassName('_category_name')[0].removeAttribute('loc');
+    category.classList.remove('category_all');
     removeClassCurrentItem(category);
     removeClassActiveItem(category);
     category.setAttribute('category', '');
-    var categoryBlocked = categoriesContainer.getElementsByClassName('_category_blocked')[0];
+    var categoryBlocked = categoriesContainer.getElementsByClassName('category_blocked')[0];
     document.getElementsByClassName('category-group')[0].insertBefore(category, categoryBlocked);
 };
+
+Player.prototype.renderCategoryName = function (id) {
+    var ganreId = 'all';
+    if (id) {
+        ganreId = id;
+    }
+    var lang = getLanguage();
+    var categoryName = 'Нет названия';
+    if (ganreId === 'all' || ganreId === 'favorites' || ganreId === 'blocked') {
+        categoryName = localization.langs[lang]['category_' + ganreId];
+    } else {
+        var categoryItem = playlist.ganres[ganreId];
+        if (categoryItem.names) {
+            if (categoryItem.names[lang]) {
+                categoryName = categoryItem.names[lang];
+            } else {
+                categoryName = categoryItem.names['ru'];
+            }
+        }
+    }
+    return categoryName;
+};
+
+Player.prototype.changeCategoryNames = function () {
+    var categories = categoriesContainer.getElementsByClassName('category-item-container');
+    for (var i = 0; i < categories.length; i++) {
+        var id = categories[i].getAttribute('_id');
+        var categoryName = this.renderCategoryName(id);
+        categories[i].getElementsByClassName('_category_name')[0].textContent = categoryName;
+    }
+};
+
 
 //  Хайдим/анхайдим категории в зависимости от того есть в ней активные каналы или все заблокированны
 Player.prototype.switchCategoryVisibility = function (ganres) {
@@ -3344,7 +3467,7 @@ Player.prototype.switchCategoryVisibility = function (ganres) {
 
 // Очищмем от старой епг, отпределяем тип епг, рендерим епг. Пока что я отключил опередление типа епг
 Player.prototype.renderEpg = function (ch_id, reload) {
-    console.log('renderEpg');
+    console.log("render epg");
     var self = this;
     self.clearEpg();
     var lang = getLanguage();
@@ -3360,9 +3483,11 @@ Player.prototype.renderEpg = function (ch_id, reload) {
         xhr.open('GET', url, true);
         //xhr.responseType = "json";
         xhr.onload = function () {
-            console.log('xhr start');
+            console.log("xhr epg started");
+            setWidth("main-menu", 55);
             var response = JSON.parse(this.responseText);
             if (response.length > 0) {                             //если нам приходит не пустой массив епг
+                console.log("xhr epg not empty");
                 self.renderFullEpg(response, reload, ch_id);
                 var epgContainerHeight = document.getElementById('epg-container').clientHeight;             //видимая высота контейнера епг
                 var epgsSumHeight = self.getEpgDaysHeight();                                                //сумма высот каждого епг-дня
@@ -3372,22 +3497,24 @@ Player.prototype.renderEpg = function (ch_id, reload) {
                 }
             }
             else {                                                      //если пустой то выводим надпись Нет программ в блоке Епг
+                console.log("xhr empty");
                 var loader = document.getElementById('epg-loader');
                 self.disableLoader(loader);
-                console.log('disable loader');
                 var channelEpgTpl = epgContainer.getElementsByClassName('_one_day_epg')[0];
                 var errorBlock = channelEpgTpl.cloneNode(true);
                 var text = errorBlock.getElementsByClassName('_prog_epg_name')[0];
                 text.setAttribute('loc', 'there_is_no_epg');
+                text.setAttribute('scrollamount', 0);
                 text.textContent = localization.langs[lang]['there_is_no_epg'];
+                //document.querySelector('.one-epg-day:not(.hidden)').setAttribute('day', 'none');
                 text.classList.remove('cropper');
                 text.parentNode.style.width = '100%';
                 errorBlock.classList.remove('hidden');
                 errorBlock.getElementsByClassName('epg-day-title')[0].classList.add('hidden');
                 errorBlock.getElementsByClassName('epg-day-prog')[0].classList.remove('hidden');
                 epgContainer.appendChild(errorBlock);
+                document.querySelector('.one-epg-day:not(.hidden)').setAttribute('day', 'none');
             }
-            console.log('xhr end');
         };
         xhr.send();
     }, 0);
@@ -3398,7 +3525,7 @@ Player.prototype.renderEpg = function (ch_id, reload) {
 Player.prototype.getNextDayEpg = function (ch_id, day) {
     var self = this;
     var nextDayBtn = document.querySelector('.one-epg-day[day="' + day + '"] ._next_day_btn');
-    if (nextDayBtn.classList.contains('hidden')) {
+    if (nextDayBtn && nextDayBtn.classList.contains('hidden')) {
         nextDayBtn.classList.remove('hidden');
         var lang = getLanguage();
         var url = self.buildChEpgURL(ch_id, lang, day, day);
@@ -3434,15 +3561,14 @@ Player.prototype.getEpgDaysHeight = function () {
     return sum;
 };
 
-// epgContainer.addEventListener('scroll', function(e) {
-//     Player.prototype.checkPosition();
-// });
+epgContainer.addEventListener('scroll', function(e) {
+    Player.prototype.checkPosition();
+});
 
 // Функция проверки видимости кнопки подгрузки следующего дня программы
 Player.prototype.checkPosition = function () {
     var epgContainerHeight = document.getElementById('epg-container').clientHeight;             //видимая высота контейнера епг
     var epgsSumHeight = this.getEpgDaysHeight();                                                //сумма высот каждого епг-дня
-    //console.log((epgContainer.scrollTop+epgContainerHeight) + ' / ' + (epgsSumHeight - 50));
     if (epgContainer.scrollTop + epgContainerHeight >= epgsSumHeight - 50 && epgContainer.querySelectorAll('.one-epg-day:not(.hidden)').length != 0) {
         var ch_id = epgContainer.getAttribute('ch_id');
         var days = epgContainer.querySelectorAll('.one-epg-day:not(.hidden)');
@@ -3469,8 +3595,8 @@ function returnNext7Days(firstDayProgram) {
 Player.prototype.renderFullEpg = function (data, reload, ch_id) {
     if (!reload) {
         this.clearEpg();
-        var loader = document.getElementById('epg-loader');
-        this.enableLoader(loader);
+        //var loader = document.getElementById('epg-loader');
+        //this.enableLoader(loader);
     }
     var lang = getLanguage();
     var days = returnNext7Days(data[0].start_at);
@@ -3520,11 +3646,12 @@ Player.prototype.renderFullEpg = function (data, reload, ch_id) {
         }
 
     }
-    //sessionStorage.setItem("full_epg_ch:" + lang + ":" + ch_id, JSON.stringify(data));
-    this.disableLoader(loader);
+    playback.setSessionStorage("full_epg_ch:" + lang + ":" + ch_id, JSON.stringify(data));
+    //this.disableLoader(loader);
     var firstVisibleProgram = epgContainer.querySelector('.epg-day-prog:not(.hidden)');
     addClassCurrentItem(firstVisibleProgram);
     addClassActiveItem(firstVisibleProgram);
+    firstVisibleProgram.querySelector("marquee").classList.remove('cropper');
 };
 
 Player.prototype.renderProgram = function (data, i, reload) {
@@ -3538,13 +3665,14 @@ Player.prototype.renderProgram = function (data, i, reload) {
     program.getElementsByClassName('_prog_epg_timestart')[0].textContent = start_time;
     program.getElementsByClassName('_prog_epg_name')[0].textContent = data.title;
     program.setAttribute('id', data.id);
-    if (data.detail && epgMode === 3) {
-        program.classList.add('_more_about');
-        var moreAboutBtn = program.getElementsByClassName('_more_about_btn')[0];
-        moreAboutBtn.classList.remove('hidden');
-    } else {
-        program.classList.add('_no_more_about');
-    }
+    // if (data.detail && epgMode === 3) {          //for extended epg
+    //     program.classList.add('_more_about');
+    //     var moreAboutBtn = program.getElementsByClassName('_more_about_btn')[0];
+    //     moreAboutBtn.classList.remove('hidden');
+    // } else {
+    //     program.classList.add('_no_more_about');
+    // }
+
     // if (reload) {
     //     if (reloadData.selectProgId == data.id) {
     //         program.addClass('selected-item');
@@ -3626,14 +3754,14 @@ Player.prototype.renderMoreAbout = function (name, id) {
 // });
 Player.prototype.playOrPause = function () {
     var playPauseImg = document.getElementById('play-pause-btn-img');
-    if (((typeof playback.getState == "function") && playback.getState() == 'PAUSED') || video.paused == true) {
-        playback.resume();
+    if (stbVideo.state == 3) {
+        stbVideo.resume();
         playPauseImg.setAttribute('src', 'images/icons/pause-button.png');
-    } else {
-        playback.pause();
+    }
+    else {
+        stbVideo.pause();
         playPauseImg.setAttribute('src', 'images/icons/play-main-btn.png');
     }
-    dropActivityCounter();              // очищаем таймер для скрытие панели управления видео
 };
 
 // prevChBtn.addEventListener('click', function () {
@@ -3660,6 +3788,9 @@ Player.prototype.prevChannel = function () {
         this.switchChannel(playlist.ganres[ganre_id].channels[cid], number, ganre_id, cid);
     }
     dropActivityCounter();                                                  //  очищаем таймер для скрытия панели управления видео
+    if (document.querySelectorAll('._channels_group:not(.hidden) .ch-item.item-active')[0]) {
+        document.querySelectorAll('._channels_group:not(.hidden) .ch-item.item-active')[0].classList.remove('item-active');
+    }
 };
 
 // nextChBtn.addEventListener('click', function () {
@@ -3712,52 +3843,17 @@ Player.prototype.toggleVolume = function () {
     dropActivityCounter();                                                  // очищаем таймер для скрытия панели управления видео
 };
 
-//  Fullscreen-mode
-// fullScreenBtn.addEventListener('click', function () {
-//     adapter.fullScreenMode();
-// });
-//
-// //  Все ивенты на блоке с категориями
-// categoriesContainer.addEventListener('mouseover', function (event) {
-//     var target = event.target;
-//     while (target != this) {
-//         if (target.matches('.category-item-container')) {
-//             if (selectedCategory) {
-//                 removeClassActiveItem(selectedCategory);
-//             }
-//             selectedCategory = target;
-//             addClassActiveItem(selectedCategory);
-//             return;
-//         }
-//         target = target.parentNode;
-//     }
-// });
-//
-// categoriesContainer.addEventListener('click', function (event) {
-//     var target = event.target;
-//     while (target != this) {
-//         if (target.matches('.category-item-container')) {
-//             adapter.openChoosenCategoryList(target);
-//             return;
-//         }
-//         target = target.parentNode;
-//     }
-// });
-
 Player.prototype.openChoosenCategoryList = function (currentCategory) {
     channelContainerScroll = 0;
     channelGroupsContainer.scrollTop = 0;                                   //обнуляем положение скроллбара у списков каналов
-    if (currentCategory.classList.contains('_category_blocked')) {
+    if (currentCategory.classList.contains('category_blocked')) {
         adapter.openBlockedList();
     } else {
-        var channelGroups = channelGroupsContainer.getElementsByClassName('_channels_group');
-        for (var i = 0; i < channelGroups.length; i++) {
-            channelGroups[i].classList.add('hidden');
-        }
-        var categories = categoriesContainer.getElementsByClassName('category-item-container');
-        for (var i = 0; i < categories.length; i++) {
-            removeClassCurrentItem(categories[i]);
-        }
+        var cat = categoriesContainer.getElementsByClassName('category-item-container current-item')[0];
+        removeClassCurrentItem(cat);
+        // for (var i = 0; i < categories.length; i++) {
+        //     removeClassCurrentItem(categories[i]);
+        // }
         addClassCurrentItem(currentCategory);
         var id = currentCategory.getAttribute('_id');
         var categoryName = currentCategory.getElementsByClassName('_category_name')[0].textContent;
@@ -3766,87 +3862,10 @@ Player.prototype.openChoosenCategoryList = function (currentCategory) {
     }
 };
 
-//  Все ивенты на блоке с каналами
-// channelGroupsContainer.addEventListener('mouseover', function (event) {
-//     if (categoriesContainer.classList.contains('hidden')) {
-//         adapter.hideEpgsBlocks();
-//         var channels = channelGroupsContainer.getElementsByClassName('_channel');
-//         for (var i = 0; i < channels.length; i++) {
-//             channels[i].classList.remove('channel-opacity', 'selected-item');
-//         }
-//         var progamsEpg = epgContainer.getElementsByClassName('_prog_epg');
-//         for (var i = 0; i < progamsEpg.length; i++) {
-//             progamsEpg[i].classList.remove('channel-opacity', 'selected-item');
-//         }
-//         selected_ch_id = null;
-//         setWidth("main-menu", 30);
-//     }
-//
-//     var target = event.target;
-//     while (target != this) {
-//         if (target.matches('._channel')) {
-//             if (activeChannel) {
-//                 activeChannel.classList.remove('item-active', 'ch-item_active');
-//             }
-//             activeChannel = target;
-//             var categories = categoriesContainer.getElementsByClassName('category-item-container');
-//             for (var i = 0; i < categories.length; i++) {
-//                 categories[i].classList.remove('item-active', 'ch-item_active');
-//             }
-//             Player.prototype.channelMouseOver(target);
-//             return;
-//         }
-//         target = target.parentNode;
-//     }
-// });
-//
-// channelGroupsContainer.addEventListener('mouseleave', function (event) {
-//     if (activeChannel) {
-//         activeChannel.classList.remove('ch-item_active', 'item-active');
-// //            var thisChName = activeChannel.getElementsByClassName('_ch_name')[0];
-// //            thisChName.classList.remove('marquee');
-// //            thisChName.classList.add('cropper');
-//         var id = activeChannel.getAttribute('_id');
-//         arrowsContainer.querySelector('._render_epg_btn[_id="' + id + '"]').classList.add('hidden');
-//     }
-// });
-//
-// channelGroupsContainer.addEventListener('click', function (event) {
-//     var target = event.target;
-//     while (target != this) {
-//         if (target.matches('._channel')) {
-//             adapter.selectChannel();
-//             return;
-//         }
-//         target = target.parentNode;
-//     }
-// });
-
 Player.prototype.channelMouseOver = function (self) {
-    var renderEpgBtns = arrowsContainer.getElementsByClassName('arrow-block-item');
-    for (var i = 0; i < renderEpgBtns.length; i++) {
-        renderEpgBtns[i].classList.add('hidden');
-        renderEpgBtns[i].style.top = self.getBoundingClientRect().top + 'px';
-    }
     var oldActiveChannels = channelGroupsContainer.querySelectorAll('.ch-item.item-active');
     removeActiveClassFrom(oldActiveChannels);
     self.classList.add('ch-item_active', 'item-active');
-    if (self.classList.contains('_ch_with_epg')) {
-        var ch_id = self.getAttribute('_id');
-        arrowsContainer.querySelector('.arrow-block-item[_id="' + ch_id + '"]').classList.remove('hidden');
-    }
-//        var containerWidth = self.getElementsByClassName('ch-title-rating__title')[0].offsetWidth;
-//        var textWidth = this.getCurrentProgrammWidth($(self), '._ch_name');
-//        var channelNames = channelGroupsContainer.getElementsByClassName('_ch_name');
-//        for (var i = 0; i < channelNames.length; i++) {
-//            channelNames[i].classList.remove('marquee');
-//            channelNames[i].classList.add('cropper');
-//        }
-//        if (containerWidth <= textWidth) {
-//            var thisChName = self.getElementsByClassName('_ch_name')[0];
-//            thisChName.classList.remove('cropper');
-//            thisChName.classList.add('marquee');
-//        }
 };
 
 Player.prototype.hideEpgsBlocks = function () {
@@ -3855,7 +3874,6 @@ Player.prototype.hideEpgsBlocks = function () {
 };
 
 Player.prototype.selectChannel = function (ch_id) {
-    console.log("selectChannel started");
     epgContainer.classList.add('hidden');
     if (mainMenu.classList.contains('_open-categories')) {
         setWidth("main-menu", 55);
@@ -3863,10 +3881,11 @@ Player.prototype.selectChannel = function (ch_id) {
         setWidth("main-menu", 30);
     }
     this.removeClassesBeforeSelectChannel();
+
     if (ch_id) {
         var channel = channelGroupsContainer.querySelector('._channels_group[ganre_id=all] .ch-item[_cid="' + ch_id + '"]');   //  if block or unblock
     } else {
-        var channel = channelGroupsContainer.querySelector('.ch-item.item-active');                                            //  if choosed channel from list
+        var channel = document.querySelector('._channels_group:not(.hidden) .ch-item.item-active');                                            //  if choosed channel from list
     }
     var number = channel.getElementsByClassName('_ch_number')[0].textContent;
     var cid = channel.getAttribute('_cid');
@@ -3878,7 +3897,6 @@ Player.prototype.selectChannel = function (ch_id) {
         this.switchChannel(playlist.ganres[ganre_id].channels[cid], number, ganre_id, cid);
     }
     hideMainMenu()     //  скрываем левое меню после включения другого канала из списка каналов
-    console.log("selectChannel ended");
 };
 
 //  Все ивенты на Сonfirm окне (block/unblock/enter blocked)
@@ -3973,143 +3991,34 @@ Player.prototype.confirmAction = function () {
         }
     }
 };
-//
-// document.getElementsByClassName('_ch_container')[0].addEventListener('scroll', function () {
-//     var scrollTopPosition = document.getElementsByClassName('_ch_container')[0].scrollTop;
-//     var arrowsBlock = document.getElementsByClassName('block-with-arrows')[0];
-//     arrowsBlock.scrollTop = scrollTopPosition;
-//     var epgsBtns = document.getElementsByClassName('_render_epg_btn');
-//     for (var i = 0; i < epgsBtns.length; i++) {
-//         epgsBtns[i].classList.add('hidden');
-//     }
-//     clearTimeout(channelScrollTimer);
-//     channelScrollTimer = setTimeout( scrollEnd , 150 );
-// });
-
-var scrollEnd = function () {
-    var focusedChannel = document.getElementsByClassName('ch-item item-active')[0];
-    if (focusedChannel.classList.contains('_ch_with_epg')) {
-        var ch_cid = focusedChannel.getAttribute('_cid');
-        document.querySelector('.block-with-arrows .arrow-block-item[_cid="' + ch_cid + '"]').classList.remove('hidden');
-    }
-    clearTimeout(channelScrollTimer);
-};
-
-//  Все ивенты на блоке с arrows (для каналов)
-// arrowsContainer.addEventListener('click', function (event) {
-//     var target = event.target;
-//     while (target != this) {
-//         if (target.matches('._render_epg_btn')) {
-//             adapter.watchEpg();
-//             return;
-//         }
-//         target = target.parentNode;
-//     }
-// });
-//
-// arrowsContainer.addEventListener('mouseover', function (event) {
-//     var target = event.target;
-//     while (target != this) {
-//         if (target.matches('._render_epg_btn')) {
-//             activeEpgArrow = target;
-//             activeEpgArrow.classList.remove('hidden');
-//             var cid = activeEpgArrow.getAttribute('_id');
-//             channelGroupsContainer.querySelector('.ch-item[_id="' + cid + '"]').classList.add('ch-item_active', 'item-active');
-//             return;
-//         }
-//         target = target.parentNode;
-//     }
-// });
-//
-// arrowsContainer.addEventListener('mouseleave', function (event) {
-//     if (activeEpgArrow) {
-//         activeChannel.classList.remove('ch-item_active', 'item-active');
-//         activeEpgArrow.classList.add('hidden');
-//         var cid = activeEpgArrow.getAttribute('_id');
-//         channelGroupsContainer.querySelector('.ch-item[_id="' + cid + '"]').classList.remove('ch-item_active', 'item-active');
-//     }
-// });
 
 Player.prototype.watchEpg = function () {
+    console.log("watchepg");
     var self = this;
     var selectedChannel = channelGroupsContainer.querySelector('.ch-item.item-active');
     activeChannel = selectedChannel;
     selected_ch_id = selectedChannel.getAttribute('_id');
     categoriesContainer.classList.add('hidden');
-    var selectedChannelArrow = arrowsContainer.querySelector('.arrow-block-item[_id="' + selected_ch_id + '"]');
-    selectedChannelArrow.classList.add('hidden');
-//        var arrows = arrowsContainer.getElementsByClassName('_render_epg_btn');
-//        for (var i = 0; i < arrows.length; i++) {
-//            arrows[i].classList.add('hidden');
-//        }
     self.removeClassesBeforeEpg();
-    epgContainer.classList.remove('hidden');
-    mainMenu.getElementsByClassName('arrow-container__arrow-icon')[0].classList.add('mirror-vertical');
-    arrowsContainer.classList.remove('block-with-arrows_55vw');
-    mainMenu.classList.remove('open-categories');
+    epgContainer.className = epgContainer.className.replace(/\bhidden\b/g, "");
+    //mainMenu.classList.remove('open-categories');
     this.clearEpg();
-    setWidth("main-menu", 55);
-    var loader = document.getElementById('epg-loader');
-    this.enableLoader(loader);
-    channelGroupsContainer.querySelector('.ch-item[_id="' + selected_ch_id + '"]').classList.add('selected-item');
-    setTimeout(function () {
-        self.renderEpg(selected_ch_id);
-    }, 0);
+    //setWidth("main-menu", 55);            //replaced to renderEpg to increase speed
+    //var loader = document.getElementById('epg-loader');
+    //this.enableLoader(loader);
+    channelGroupsContainer.querySelector('._channels_group:not(.hidden) .ch-item[_id="' + selected_ch_id + '"]').classList.add('selected-item');
+    self.renderEpg(selected_ch_id);
     epgContainer.setAttribute('ch_id', selected_ch_id);
 };
 
 //убираем классы фокуса у текущего сфокусированного канала из списка, а также добавляем всем остальным прозрачность
 Player.prototype.removeClassesBeforeEpg = function () {
-    var channels = channelGroupsContainer.getElementsByClassName('ch-item');
+    var channels = document.querySelectorAll('.ch-item.item-active');
     for (var i = 0; i < channels.length; i++) {
-        channels[i].classList.remove('channel-item_active', 'item-active');
-        channels[i].classList.add('channel-opacity');
+        channels[i].className = channels[i].className.replace(/\bchannel-item_active\b/g, "");
+        channels[i].className = channels[i].className.replace(/\bitem-active\b/g, "");
     }
 };
-
-// Все ивенты на блоке с EPG
-// epgContainer.addEventListener('mouseover', function (event) {
-//     var target = event.target;
-//     while (target != this) {
-//         if (target.matches('._prog_epg')) {
-//             var progEpg = epgContainer.getElementsByClassName('_prog_epg');
-//             for (var i = 0; i < progEpg.length; i++) {
-//                 removeClassActiveItem(progEpg[i]);
-//             }
-//             Player.prototype.epgMouseover(target);
-//             return;
-//         }
-//         target = target.parentNode;
-//     }
-// });
-//
-// epgContainer.addEventListener('mouseleave', function (event) {
-//     var target = event.target;
-//     while (target != this) {
-//         if (target.matches('._prog_epg')) {
-//             removeClassActiveItem(target);
-//             var progEpgName = target.getElementsByClassName('_prog_epg_name')[0];
-//             progEpgName.classList.remove("marquee");
-//             progEpgName.classList.add("cropper");
-//             return;
-//         }
-//         target = target.parentNode;
-//     }
-// });
-//
-// epgContainer.addEventListener('click', function (event) {
-//     var target = event.target;
-//     while (target != this) {
-//         if (target.matches('._more_about')) {
-//             adapter.watchExtendedEpg(target);
-//             return;
-//         } else if (target.matches('._no_more_about')) {
-//             adapter.closeExtendedEpg(target);
-//             return;
-//         }
-//         target = target.parentNode;
-//     }
-// });
 
 Player.prototype.epgMouseover = function (self) {
     addClassActiveItem(self);
@@ -4157,30 +4066,17 @@ Player.prototype.closeExtendedEpg = function (currentProg) {
     this.hideMoreAbout();
 };
 
-//  Все ивенты settings
-// languagesContainer.addEventListener('click', function (event) {
-//     var target = event.target;
-//     while (target != this) {
-//         if (target.matches('._lang_btn')) {
-//             var langBtns = languagesContainer.getElementsByClassName('_lang_btn');
-//             for (var i = 0; i < langBtns.length; i++) {
-//                 removeClassActiveItem(langBtns[i]);
-//             }
-//             addClassActiveItem(target);
-//             var lang = target.getAttribute('lang');
-//             adapter.setLanguage(lang);
-//             return;
-//         }
-//         target = target.parentNode;
-//     }
-// });
-
 Player.prototype.setLanguage = function (lang) {
-    // var self = this;
-    // localStorage.setItem('localization', lang);
-    // var epg_url = this.buildBasicEpgURL(playlist_hash, lang);
-    // localization.apply(lang);
-    // self.checkShortenedLanguage();
+    var self = this;
+    //localStorage.setItem('localization', lang);
+    playback.setLocalStorage('localization', lang);
+    //gSTB.SaveUserData('localization', lang);
+    var epg_url = this.buildBasicEpgURL(playlist_hash, lang);
+    var cid = video.getAttribute('_cid');
+    var ganre_id = video.getAttribute('ganre_id');
+    localization.apply(lang);
+    this.changeCategoryNames();
+    self.checkShortenedLanguage();
     // this.loadEpg(epg_url, function () {
     //     self.firstLoadRenamePrograms();
     //     var cid = video.getAttribute('_cid');
@@ -4192,8 +4088,8 @@ Player.prototype.setLanguage = function (lang) {
     //     }
     //     self.renderChInfo(channel_obj, num);
     // });
-    // var currentCategory = categoriesContainer.querySelector('.current-item ._category_name').getAttribute('loc');     // here also changes for title of current category
-    // currentChCategory.textContent = localization.langs[lang][currentCategory];
+    currentChCategory.textContent = this.renderCategoryName(ganre_id);
+    mainMenuTitle.textContent = this.renderCategoryName(ganre_id);
 };
 
 // resetSettingsBtn.addEventListener('click', function () {
@@ -4201,12 +4097,10 @@ Player.prototype.setLanguage = function (lang) {
 // });
 
 Player.prototype.resetSettings = function () {
-//        var langBtns = languagesContainer.getElementsByClassName('_lang_btn');
-//        for (var i = 0; i < langBtns.length; i++) {
-//            langBtns[i].classList.remove('active');
-//        }
     document.querySelector('.settings-container .settings-btn').classList.remove('active');
-    document.getElementsByClassName('_lang_btn_default')[0].click();
+    //document.getElementsByClassName('lang_btn_default')[0].click();
+    var lang = document.getElementsByClassName('lang_btn_default')[0].getAttribute('lang');
+    this.setLanguage(lang);
 };
 
 //  Все ивенты parent control
@@ -4258,8 +4152,8 @@ Player.prototype.togglePasswordVisibility = function (showPass) {
             input.classList.remove('show-pass');
             input.setAttribute('type', 'password');
         } else {
-            showPass.classList.add('show-pass');
-            input.classList.add('show-pass');
+            showPass.className += "  show-pass";
+            input.className += "   show-pass";
             input.setAttribute('type', 'text');
         }
     }
@@ -4328,7 +4222,6 @@ Player.prototype.savePassword = function () {
 Player.prototype.clearLists = function () {
     this.clearCategoriesList();
     this.clearChannelsList();
-    this.clearEpgArrowsList();
 };
 
 //  Очистка информации про канал вверху видео
@@ -4341,7 +4234,7 @@ Player.prototype.clearChInfo = function () {
 
 //  Очистка списка категорий
 Player.prototype.clearCategoriesList = function () {
-    var categories = categoriesContainer.querySelectorAll('._category:not(._category_all):not(._category_favorites)');
+    var categories = categoriesContainer.querySelectorAll('.category:not(.category_all):not(.category_favorites)');
     for (var i = 0; i < categories.length; i++) {
         categories[i].remove();
     }
@@ -4355,14 +4248,6 @@ Player.prototype.clearChannelsList = function () {
     }
 };
 
-//  Очистка списка стрелок перехода к епг канала
-Player.prototype.clearEpgArrowsList = function () {
-    var epgArrows = arrowsContainer.querySelectorAll('._render_epg_btn');
-    for (var i = 0; i < epgArrows.length; i++) {
-        if (i)
-            epgArrows[i].remove();
-    }
-};
 
 //  Очистка от старой епг
 Player.prototype.clearEpg = function () {
@@ -4399,7 +4284,8 @@ Player.prototype.clearAllInputs = function (block) {
 //  Разные Helpers functions
 function addClassCurrentItem(elem) {
     if (elem)
-        elem.classList.add('current-item');
+        //elem.classList.add("current-item");
+        elem.className += "  current-item";
 }
 
 function removeClassCurrentItem(elem) {
@@ -4482,7 +4368,7 @@ Player.prototype.findNextChannel = function (ganre_id, currentChCid) {
     if (next) {
         channel = next;
     } else {
-        channel = channelList.getElementsByClassName('_channel')[1];        // firstElementChild не отработает, поскольку 1-ый элемент это "шаблон" и он hidden
+        channel = channelList.getElementsByClassName('ch-item')[1];        // firstElementChild не отработает, поскольку 1-ый элемент это "шаблон" и он hidden
     }
     return channel;
 };
@@ -4511,103 +4397,6 @@ Player.prototype.fullScreenMode = function () {
 };
 
 //  ______________________________
-//  Progressbar functions
-Player.prototype.progressbar_init = function (id, reload) {
-    var self = this;
-    if (!reload) {
-        var progressbarItem = controlsContainer.getElementsByClassName('_video_progressbar_item');
-        for (var i = 0; i < progressbarItem.length; i++) {
-            progressbarItem[i].classList.add('hidden');
-        }
-    }
-    var program = epg.searchProgram(id, new Date());
-    if (program) {
-        self.setProgressbarVal(program);
-        self.writeProgDuration(program);
-        self.progressbarInitDelay();
-    }
-    clearTimeout(progressbar_timer);
-    progressbar_timer = setTimeout(function tick() {
-        if (program) {
-            self.writePlaybackTime(program);
-        }
-        progressbar.stepUp(1);
-        var p = progressbar.value;
-        self.progressLineBg(p);
-        progressbar_timer = setTimeout(tick, 1000);
-    }, 1000);
-};
-
-Player.prototype.progressbarInitDelay = function () {
-    clearTimeout(progressbarInitTimer);
-    progressbarInitTimer = setTimeout(function () {
-        var progressbarItem = controlsContainer.getElementsByClassName('_video_progressbar_item');
-        for (var i = 0; i < progressbarItem.length; i++) {
-            progressbarItem[i].classList.remove('hidden');
-        }
-    }, 1000);
-};
-
-Player.prototype.channelsProgressInit = function (channel, id) {
-    var program = epg.searchProgram(id, new Date());
-    var progressbar = channel.getElementsByClassName('_channels_progress')[0];
-    if (program) {
-        var currentTimeVal = new Date().getTime() / 1000 | 0;
-        var durationTimeVal = program[1] - program[0];
-        var playbackTimeVal = currentTimeVal - program[0];
-        var progress = Math.round((playbackTimeVal / durationTimeVal) * 100);
-        var step = 100 / durationTimeVal;
-        progressbar.setAttribute('step', step);
-        progressbar.value = progress;
-        progressbar.style.backgroundImage = '-webkit-linear-gradient(left ,#fff 0%,#fff ' + progress + '%,#805ee0 ' + progress + '%, #805ee0 100%)';
-    } else {
-        progressbar.classList.add('hidden');
-    }
-};
-
-Player.prototype.dropProgressbar = function () {
-    clearTimeout(progressbar_timer);
-    progressbar.value = 0;
-    progressbar.style.backgroundImage = 'none';
-    playbackTime.textContent = '00:00';
-    durationTime.textContent = '00:00';
-};
-
-//  Задаем стили прогресбара
-Player.prototype.progressLineBg = function (n) {
-    progressbar.style.backgroundImage = '-webkit-linear-gradient(left ,#fff 0%,#fff ' + n + '%,#805ee0 ' + n + '%, #805ee0 100%)';
-};
-
-//  Задаем значение прогрессбара
-Player.prototype.setProgressbarVal = function (program) {
-    var currentTimeVal = new Date().getTime() / 1000 | 0;
-    var durationTimeVal = program[1] - program[0];
-    var playbackTimeVal = currentTimeVal - program[0];
-    var progress = Math.round((playbackTimeVal / durationTimeVal) * 100);
-    var step = 100 / durationTimeVal;
-    progressbar.setAttribute('step', step);
-    progressbar.value = progress;
-};
-
-//  Записуем сколько прошло времени с начала передачи
-Player.prototype.writePlaybackTime = function (program) {
-    var currentTimeVal = new Date().getTime() / 1000 | 0;
-    var playbackTimeVal = currentTimeVal - program[0];
-    var playbackTimeSec = playbackTimeVal % 60;
-    if (playbackTimeSec < 10)
-        playbackTimeSec = '0' + playbackTimeSec;
-    playbackTime.textContent = Math.floor(playbackTimeVal / 60) + ':' + playbackTimeSec;
-};
-
-//  Записуем длительность передачи
-Player.prototype.writeProgDuration = function (program) {
-    var durationTimeVal = program[1] - program[0];
-    var durationSec = durationTimeVal % 60;
-    if (durationSec < 10)
-        durationSec = '0' + durationSec;
-    durationTime.textContent = Math.floor(durationTimeVal / 60) + ':' + durationSec;
-};
-
 Player.prototype.successAlert = function () {
     savePcBtn.classList.add('hidden');
     var successText = document.getElementsByClassName('_success_saved');
@@ -4664,12 +4453,13 @@ removeErrorAlerts = function () {
 
 //  Показать скрытую категорию в списке, если есть каналы в Favorites
 Player.prototype.toggleFavoritesCategory = function () {
-    // var favoritesChLength = +localStorage.getItem('fav_ch_length');
-    // if (favoritesChLength) {
-    //     categoriesContainer.getElementsByClassName('_category_favorites')[0].classList.remove('hidden');
-    // } else {
-    //     categoriesContainer.getElementsByClassName('_category_favorites')[0].classList.add('hidden');
-    // }
+    var favoritesChLength = +playback.getLocalStorage('fav_ch_length');
+    console.log(favoritesChLength);
+    if (favoritesChLength) {
+        categoriesContainer.getElementsByClassName('category_favorites')[0].classList.remove('hidden');
+    } else {
+        categoriesContainer.getElementsByClassName('category_favorites')[0].classList.add('hidden');
+    }
 };
 
 Player.prototype.openFavoritesList = function () {
@@ -4684,7 +4474,7 @@ Player.prototype.enterGroupFavorites = function () {
     for (var i = 0; i < categories.length; i++) {
         removeClassCurrentItem(categories[i]);
     }
-    addClassCurrentItem(categoriesContainer.getElementsByClassName('_category_favorites')[0]);
+    addClassCurrentItem(categoriesContainer.getElementsByClassName('category_favorites')[0]);
     var channelGroups = channelGroupsContainer.getElementsByClassName('_channels_group');
     for (var i = 0; i < channelGroups.length; i++) {
         channelGroups[i].classList.add('hidden');
@@ -4693,6 +4483,7 @@ Player.prototype.enterGroupFavorites = function () {
 };
 
 Player.prototype.favoritesSwitch = function () {
+    console.log("favoritesSwitch starts");
     var ch_id = video.getAttribute('ch_id');
     var ganre_id = video.getAttribute('ganre_id');
     var is_favorites = this.searchFavoriteCh(ch_id);
@@ -4707,25 +4498,54 @@ Player.prototype.favoritesSwitch = function () {
 Player.prototype.pushToFavorites = function (ch_id, btn, ganre_id) {
     btn.getElementsByTagName('img')[0].setAttribute('src', 'images/icons/bookmark-yellow.png');
     channelGroupsContainer.querySelector('.ch-item[_id="' + ch_id + '"] .rating-container__favorites').style.opacity = 1;
-    localStorage.setItem(favorite_ch_key + ch_id, ch_id);
-    var favChLength = +localStorage.getItem('fav_ch_length') + 1;
-    localStorage.setItem('fav_ch_length', favChLength);
-    var currentCategoryId = document.querySelector('._category.current-item').getAttribute('_id');
-    this.renderAll(playlist, ganre_id , '', currentCategoryId);
+    playback.setLocalStorage(favorite_ch_key + ch_id, ch_id);
+    var favChLength = +playback.getLocalStorage('fav_ch_length');
+    if (!favChLength) favChLength = 0;
+    favChLength += 1;
+    playback.setLocalStorage('fav_ch_length', favChLength);
+    var currentCategoryId = document.querySelector('.category.current-item').getAttribute('_id');
+    //this.renderAll(playlist, ganre_id , '', currentCategoryId);
+    // from renderAll() ---->
+    var containerTpl = document.getElementsByClassName('_channels_group')[0];
+    var favorit_container = document.querySelector('._channels_group[ganre_id="favorites"]');
+    var epgMode = this.getEpgMode();
+    for (var i = 0; i < playlist.channels.length; i++) {
+        if (playlist.channels[i].id == ch_id) {
+            var ch_obj = playlist.channels[i];
+            this.renderToFavorites(favorit_container, ch_obj, epgMode, i, ganre_id);
+            break;
+        }
+    }
+    this.renderChannelIndexNumber(favorit_container);
+    // <----from renderAll()
+    var items = channelGroupsContainer.querySelectorAll('.ch-item[_id="' + ch_id + '"] .rating-container__favorites');
+    for (i=0; i<items.length; i++) {
+        items[i].style.opacity = 1;
+    }
     this.toggleFavoritesCategory();
 };
 
 Player.prototype.removeFromFavorites = function (ch_id, btn, ganre_id) {
     if (btn) {
+        console.log(btn);
         btn.getElementsByTagName('img')[0].setAttribute('src', 'images/icons/bookmark-white.png');
     } else {
         channelGroupsContainer.querySelector('.ch-item[_id="' + ch_id + '"] .rating-container__favorites').style.opacity = 0;
     }
-    localStorage.removeItem(favorite_ch_key + ch_id);
-    var favChLength = +localStorage.getItem('fav_ch_length') - 1;
-    localStorage.setItem('fav_ch_length', favChLength);
-    this.renderAll(playlist, ganre_id);
-    categoriesContainer.getElementsByClassName('_category_all')[0].click();
+    playback.removeItemLocalStorage(favorite_ch_key + ch_id);
+    var favChLength = +playback.getLocalStorage('fav_ch_length') - 1;
+    playback.setLocalStorage('fav_ch_length', favChLength);
+    //this.renderAll(playlist, ganre_id);
+    // from renderAll() ---->
+    channelGroupsContainer.querySelector('._channels_group[ganre_id="favorites"] .ch-item[_id="' + ch_id + '"]').remove();
+    var items = channelGroupsContainer.querySelectorAll('.ch-item[_id="' + ch_id + '"] .rating-container__favorites');
+    for (i=0; i<items.length; i++) {
+        items[i].style.opacity = 0;
+    }
+    var favorit_container = document.querySelector('._channels_group[ganre_id="favorites"]');
+    this.renderChannelIndexNumber(favorit_container);
+    // <----from renderAll()
+    this.openChoosenCategoryList(categoriesContainer.getElementsByClassName('category_all')[0]);
     if (ganre_id) {                                                         // просто убираем из фейворитс (не заносим в Блокед)
         var cid = channelGroupsContainer.querySelector('._channels_group[ganre_id=all] .ch-item[_id="' + ch_id + '"]').getAttribute('_cid');
         this.selectChannel(cid);
@@ -4749,6 +4569,7 @@ Player.prototype.showConfirmWindow = function (blocked) {
     var pcPassword = this.checkSavedPass();
     var lang = getLanguage();
     clearInterval(timerActivity);                                           // очищаем таймер для скрытия панели управления видео
+    console.log(popup.className);
     popup.classList.remove('hidden');
     popup.classList.add('_ch_confirm');
     if (blocked) {
@@ -4804,27 +4625,26 @@ Player.prototype.closeSetPassMode = function (lang) {
 
 //  Показать скрытую категорию в списке, если есть каналы в Blocked
 Player.prototype.toggleBlockedCategory = function () {
-    // var blockedChLength = +localStorage.getItem('blocked_ch_length');
-    // if (blockedChLength) {
-    //     categoriesContainer.getElementsByClassName('_category_blocked')[0].classList.remove('hidden');
-    // } else {
-    //     categoriesContainer.getElementsByClassName('_category_blocked')[0].classList.add('hidden');
-    // }
+    var blockedChLength = +playback.getLocalStorage('blocked_ch_length');
+    if (blockedChLength) {
+        categoriesContainer.getElementsByClassName('category_blocked')[0].classList.remove('hidden');
+    } else {
+        categoriesContainer.getElementsByClassName('category_blocked')[0].classList.add('hidden');
+    }
 };
 
 Player.prototype.toggleAllCategory = function () {
     var self = this;
-    allChannelsCount = channelGroupsContainer.querySelectorAll('._channels_group[ganre_id="all"] ._channel:not(.hidden)').length;
+    allChannelsCount = channelGroupsContainer.querySelectorAll('._channels_group[ganre_id="all"] .ch-item:not(.hidden)').length;
     if (allChannelsCount == 0) {
-        categoriesContainer.getElementsByClassName('_category_all')[0].classList.add('hidden');
+        categoriesContainer.getElementsByClassName('category_all')[0].classList.add('hidden');
         if (!permission && !canceled) {
-            var action_type = categoriesContainer.getElementsByClassName('_category_blocked')[0].getAttribute('action_type');
+            var action_type = categoriesContainer.getElementsByClassName('category_blocked')[0].getAttribute('action_type');
             var lang = getLanguage();
             mainMenu.classList.add('hidden');
             popup.classList.remove('hidden');
             popupTitle.textContent = localization.langs[lang].enter_to_blocked;
             popupConfirmBtn.setAttribute('action_type', action_type);
-//                self.dropProgressbar();
             video.setAttribute('src', '');
             self.errorHandler('blocked');
         }
@@ -4832,7 +4652,7 @@ Player.prototype.toggleAllCategory = function () {
             hamburger.classList.add("_hamburger_allblocked");
             hamburger.classList.remove("_hamburger");
             // hamburger.getElementsByClassName('_hamburger_allblocked')[0].addEventListener("click", function() {
-            //     hamburger.getElementsByClassName('_category_blocked')[0].click();
+            //     hamburger.getElementsByClassName('category_blocked')[0].click();
             // });
         }
         if (permission && lastBlock) {
@@ -4847,7 +4667,7 @@ Player.prototype.toggleAllCategory = function () {
                 mainMenu.classList.add('hidden');
                 header.classList.add('hidden');
                 controlsContainer.classList.add('hidden');
-                var actionType = categoriesContainer.getElementsByClassName('_category_blocked')[0].getAttribute('action_type');
+                var actionType = categoriesContainer.getElementsByClassName('category_blocked')[0].getAttribute('action_type');
                 var lang = getLanguage();
                 popup.classList.remove('hidden');
                 popupTitle.textContent = localization.langs[lang].enter_to_blocked;
@@ -4858,18 +4678,20 @@ Player.prototype.toggleAllCategory = function () {
 };
 
 Player.prototype.openBlockedList = function () {
-    var action_type = document.getElementsByClassName('_category_blocked')[0].getAttribute('action_type');
+    var action_type = document.getElementsByClassName('category_blocked')[0].getAttribute('action_type');
+    console.log(action_type);
+    console.log(playback.getSessionStorage('trusted_session_' + action_type));
     if (this.trustedSession(action_type)) {
         var currentCategory = categoriesContainer.querySelector('.category-item-container.item-active');
         var categoryName = currentCategory.getElementsByClassName('_category_name')[0].textContent;
         mainMenuTitle.textContent = categoryName;
         this.enterGroupBlocked();
     } else {
-        var lang = getLanguage();
-        mainMenu.classList.add('hidden');
-        popup.classList.remove('hidden');
-        popupTitle.textContent = localization.langs[lang].enter_to_blocked;
-        popupConfirmBtn.setAttribute('action_type', action_type);
+        // var lang = getLanguage();
+        // mainMenu.classList.add('hidden');
+        // popup.classList.remove('hidden');
+        // popupTitle.textContent = localization.langs[lang].enter_to_blocked;
+        // popupConfirmBtn.setAttribute('action_type', action_type);
     }
 };
 
@@ -4878,13 +4700,13 @@ Player.prototype.enterGroupBlocked = function () {
     for (var i = 0; i < categories.length; i++) {
         removeClassCurrentItem(categories[i]);
     }
-    addClassCurrentItem(categoriesContainer.getElementsByClassName('_category_blocked')[0]);
+    addClassCurrentItem(categoriesContainer.getElementsByClassName('category_blocked')[0]);
     var channelGroups = channelGroupsContainer.getElementsByClassName('_channels_group');
     for (var i = 0; i < channelGroups.length; i++) {
         channelGroups[i].classList.add('hidden');
     }
     channelGroupsContainer.querySelector('._channels_group[ganre_id="blocked"]').classList.remove('hidden');
-    var category_name = categoriesContainer.querySelector('._category_blocked ._category_name').innerHTML;
+    var category_name = categoriesContainer.querySelector('.category_blocked ._category_name').innerHTML;
     mainMenuTitle.textContent = category_name;
 };
 
@@ -4894,9 +4716,11 @@ Player.prototype.blockBtnAction = function () {
     var cid = video.getAttribute('_cid');
     var ganre_id = video.getAttribute('ganre_id');
     var blocked = this.searchBlockedCh(ch_id);
+    console.log(this.trustedSession(actionType));
     if (this.trustedSession(actionType)) {
         this.blockedSwitch(actionType, ganre_id, blockBtn, cid);
     } else {
+        console.log('showPopup');
         this.showConfirmWindow(blocked);
     }
 };
@@ -4925,12 +4749,17 @@ Player.prototype.blockedSwitch = function (actionType, ganre_id, btn, cid) {
 
 Player.prototype.switchCategory = function (ganre_id, cid, actionType) {
     if (ganre_id == 'blocked' && actionType == 'unblock') {
-        categoriesContainer.getElementsByClassName('_category_all')[0].classList.remove('hidden');
-        categoriesContainer.getElementsByClassName('_category_all')[0].click();
+        categoriesContainer.getElementsByClassName('category_all')[0].classList.remove('hidden');
+        //categoriesContainer.getElementsByClassName('category_all')[0].click();
+        var categoryAll = categoriesContainer.getElementsByClassName('category_all')[0];
+        adapter.openChoosenCategoryList(categoryAll);
         this.selectChannel(cid);
     } else if (actionType == 'block') {
-        categoriesContainer.getElementsByClassName('_category_all')[0].click();
-        var firstChannel = document.querySelector('._channels_group[ganre_id="all"] ._channel:not(.hidden)');
+        console.log(categoriesContainer.getElementsByClassName('category_all')[0]);
+        var categoryAll = categoriesContainer.getElementsByClassName('category_all')[0];
+        adapter.openChoosenCategoryList(categoryAll);
+        //categoriesContainer.getElementsByClassName('category_all')[0].click();
+        var firstChannel = document.querySelector('._channels_group[ganre_id="all"] .ch-item:not(.hidden)');
         var cid = firstChannel.getAttribute('_cid');
         this.selectChannel(cid);
     }
@@ -4939,19 +4768,21 @@ Player.prototype.switchCategory = function (ganre_id, cid, actionType) {
 };
 
 Player.prototype.pushToBlocked = function (ch_id, btn) {
-    localStorage.setItem(blocked_ch_key + ch_id, ch_id);
-    if (localStorage.getItem('favorite_ch:' + ch_id)) {
+    playback.setLocalStorage(blocked_ch_key + ch_id, ch_id);
+    if (playback.getLocalStorage('favorite_ch:' + ch_id)) {
         this.removeFromFavorites(ch_id);
     }
-    var blockedChLength = +localStorage.getItem('blocked_ch_length') + 1;
-    localStorage.setItem('blocked_ch_length', blockedChLength);
+    var blockedChLength = +playback.getLocalStorage('blocked_ch_length');
+    if (!blockedChLength) blockedChLength = 0;
+    blockedChLength += 1;
+    playback.setLocalStorage('blocked_ch_length', blockedChLength);
     this.renderBlockedBtn(ch_id, btn);
 };
 
 Player.prototype.removeFromBlocked = function (ch_id, btn) {
-    localStorage.removeItem(blocked_ch_key + ch_id);
-    var blockedChLength = +localStorage.getItem('blocked_ch_length') - 1;
-    localStorage.setItem('blocked_ch_length', blockedChLength);
+    playback.removeItemLocalStorage(blocked_ch_key + ch_id);
+    var blockedChLength = +playback.getLocalStorage('blocked_ch_length') - 1;
+    playback.setLocalStorage('blocked_ch_length', blockedChLength);
     this.renderBlockedBtn(ch_id, btn);
 };
 
@@ -4963,11 +4794,15 @@ Player.prototype.renderBlockedBtn = function (id, btn) {
     if (blocked) {
         blocked_btn.setAttribute('action_type', 'unblock');
         blocked_btn.getElementsByTagName('img')[0].setAttribute('src', 'images/icons/padlock-locked.png');
-        favBtn.classList.add('video-controls__item_disabled');
+        favBtn.classList.add(' video-controls__item_disabled');
+        //favBtn.classList.remove('_active_btn');
+        favBtn.className = favBtn.className.replace(/\b_active_btn\b/g, "");
     } else {
         blocked_btn.setAttribute('action_type', 'block');
         blocked_btn.getElementsByTagName('img')[0].setAttribute('src', 'images/icons/padlock.png');
-        favBtn.classList.remove('video-controls__item_disabled');
+        //favBtn.classList.remove('video-controls__item_disabled');
+        favBtn.className = favBtn.className.replace(/\bvideo-controls__item_disabled\b/g, "");
+        favBtn.classList.add('_active_btn');
     }
 };
 
@@ -4997,29 +4832,37 @@ Player.prototype.checkShortenedLanguage = function () {
 
 
 Player.prototype.searchFavoriteCh = function (ch_id) {
-    //return localStorage.getItem(favorite_ch_key + ch_id);
+    return playback.getLocalStorage(favorite_ch_key + ch_id);
 };
 
 Player.prototype.searchBlockedCh = function (ch_id) {
-    // return localStorage.getItem('blocked_ch:' + ch_id);
+    return playback.getLocalStorage('blocked_ch:' + ch_id);
+};
+
+Player.prototype.setLastWatchedCh = function (ch_id) {
+    stbStorage.setItem('last_watched_ch', ch_id);
+};
+
+Player.prototype.getLastWatchedCh = function () {
+    return stbStorage.getItem('last_watched_ch');
 };
 
 Player.prototype.startTrustedSession = function (action_type) {
-    sessionStorage.setItem('trusted_session_' + action_type, true);
+    playback.setSessionStorage('trusted_session_' + action_type, true);
 };
 
 Player.prototype.trustedSession = function (action_type) {
-    return sessionStorage.getItem('trusted_session_' + action_type);
+    return playback.getSessionStorage('trusted_session_' + action_type);
 };
 
 Player.prototype.changeSavedPass = function (confirm_pass) {
     var new_pass = MD5(confirm_pass);
-    localStorage.setItem('parent_control', new_pass);
+    playback.setLocalStorage('parent_control', new_pass);
     this.successAlert();
 };
 
 Player.prototype.checkSavedPass = function () {
-    //return localStorage.getItem('parent_control');
+    return playback.getLocalStorage('parent_control');
 };
 
 Player.prototype.getEpgStatus = function () {
@@ -5160,45 +5003,41 @@ Player.prototype.hidePlaybackControls = function () {
 
 //листаем список каналов вверх
 Player.prototype.prevChannelInList = function () {
+    this.channelActive = document.querySelector(".ch-item.item-active");
     var currentChannel = document.getElementsByClassName("ch-item item-active")[0];
-    // var elems = document.getElementsByClassName("_channel");
-    // for (i=0; i<elems.length; i++) {
-    //     elems[i].classList.remove("ch-item_active", "item-active");
-    // }
-    document.querySelector("._channel.ch-item_active.item-active").classList.remove("ch-item_active", "item-active");
-    var prevChannel = currentChannel.previousElementSibling;
-    if (prevChannel.classList.contains("_channel") && prevChannel.getAttribute("_cid")) {
-        prevChannel.classList.add("ch-item_active", "item-active");
+    this.channelActive.classList.remove("ch-item_active", "item-active");
+    var prevChannel = this.channelActive.previousSibling;
+    if (prevChannel && prevChannel.tagName == 'DIV') {
+        //prevChannel.classList.add("ch-item_active", "item-active");
+        prevChannel.className += "  ch-item_active item-active ";
+        this.channelActive = prevChannel;
     }
     else {
-        document.querySelectorAll('._channels_group:not(.hidden) ._channel:last-child')[0].classList.add("ch-item_active", "item-active");
+        document.querySelectorAll('._channels_group:not(.hidden) .ch-item:last-child')[0].classList.add("ch-item_active", "item-active");
+        this.channelActive = document.querySelectorAll('._channels_group:not(.hidden) .ch-item:last-child')[0];
     }
-    this.channelListScroll(currentChannel, 'prev');
-    var activeChannel = document.querySelector('._channel.item-active');
-    Player.prototype.channelMouseOver(activeChannel);
+    this.channelListScroll(this.channelActive, 'prev');
+    var activeChannel = document.querySelector('.ch-item.item-active');
 };
 
 //листаем список каналов вниз
 Player.prototype.nextChannelInList = function () {
-    var currentChannel = document.getElementsByClassName("ch-item item-active")[0];
-    // var elems = document.getElementsByClassName("_channel");
-    // for (i=0; i<elems.length; i++) {
-    //     elems[i].classList.remove("ch-item_active", "item-active");
-    // }
-    document.querySelector("._channel.ch-item_active.item-active").classList.remove("ch-item_active", "item-active");
-    if (currentChannel.nextElementSibling) {
-        var nextChannel = currentChannel.nextElementSibling;
-        if (nextChannel.classList.contains("_channel")) {
-            nextChannel.classList.add("ch-item_active", "item-active");
+    var nextChannel;
+    this.channelActive = document.querySelector(".ch-item.item-active");
+    var currentChannel = this.channelActive;
+    this.channelActive.classList.remove("ch-item_active", "item-active");
+    if (this.channelActive.nextElementSibling) {
+        nextChannel = this.channelActive.nextSibling;
+        if (nextChannel.getAttribute("_cid")) {
+            nextChannel.className += "  ch-item_active item-active ";
         }
     }
     else {
-        document.querySelectorAll('._channels_group:not(.hidden) ._channel:nth-child(2)')[0].classList.add("ch-item_active", "item-active");
+        document.querySelectorAll('._channels_group:not(.hidden) .ch-item:nth-child(2)')[0].classList.add("ch-item_active", "item-active");
     }
-
+    this.channelActive = nextChannel;
     this.channelListScroll(currentChannel, 'next');
-    var activeChannel = document.querySelector('._channel.item-active');
-    Player.prototype.channelMouseOver(activeChannel);
+    var activeChannel = document.querySelector('.ch-item.item-active');
 };
 
 var channelContainerScroll = 0;
@@ -5209,27 +5048,20 @@ Player.prototype.channelListScroll = function (currentChannel, direction) {
             var isVisible = checkIfVisible(nextChannel);
             if (!isVisible) {
                 nextChannel.scrollIntoView();
-                channelContainerScroll = currentChannel.getBoundingClientRect().top;
             }
         }
         else {                                  //текущий канал последний
-            channelContainerScroll = 0;
-            channelGroupsContainer.scrollTop = channelContainerScroll;
+            channelGroupsContainer.scrollTop = 0;
         }
     }
-    else if (direction == 'prev') {
-        if (currentChannel.previousSibling.tagName == 'DIV') {       //текущий канал НЕ первый
-            var prevChannel = currentChannel.previousSibling;
-            var containerPosTop = channelGroupsContainer.getBoundingClientRect().top; //137
-            var prevChannelPosTop = prevChannel.getBoundingClientRect().top;
-            if (prevChannelPosTop <= containerPosTop) {
-                prevChannel.scrollIntoView();
-                channelContainerScroll = currentChannel.getBoundingClientRect().top;
+    else if (direction == 'prev') {     //здесь currentChannel уже является следующим наведенным каналом
+        if (currentChannel.nextSibling) {       //текущий канал НЕ первый
+            if (!isVisible) {
+                currentChannel.scrollIntoView();
             }
         }
         else {                                                       //текущий канал первый
-            channelContainerScroll = currentChannel.parentNode.querySelector('.ch-item:last-child').getBoundingClientRect().top;
-            channelGroupsContainer.scrollTop = channelContainerScroll;
+            currentChannel.scrollIntoView();
         }
     }
 };
@@ -5239,12 +5071,19 @@ Player.prototype.setVideoType = function() {
 };
 
 function getLanguage () {
-    // var lang = localStorage.getItem("localization");
-    // if (!lang) {
-    //     lang = 'ru';
-    // }
-    // return lang;
-    return 'ru';
+    var lang = playback.getLocalStorage('localization');
+    if (!lang) {
+        lang = 'ru';
+    }
+    return lang;
+}
+
+function renderUniq(uniqNum) {
+    var lang = getLanguage();
+    var uniqRow = document.getElementById('serial-number');
+    var uniq = localization.langs[lang].serial_number;
+    uniq = formatString(uniqNum);
+    uniqRow.textContent = uniq;
 }
 
 function prepareOpeningAuthPopup () {
@@ -5255,31 +5094,31 @@ function prepareOpeningAuthPopup () {
 adapter = new Adapter();
 auth = new Auth();
 (function() {
-  var arr = [window.Element, window.CharacterData, window.DocumentType];
-  var args = [];
+    var arr = [window.Element, window.CharacterData, window.DocumentType];
+    var args = [];
 
-  arr.forEach(function (item) {
-    if (item) {
-      args.push(item.prototype);
-    }
-  });
-
-  // from:https://github.com/jserz/js_piece/blob/master/DOM/ChildNode/remove()/remove().md
-  (function (arr) {
     arr.forEach(function (item) {
-      if (item.hasOwnProperty('remove')) {
-        return;
-      }
-      Object.defineProperty(item, 'remove', {
-        configurable: true,
-        enumerable: true,
-        writable: true,
-        value: function remove() {
-          this.parentNode.removeChild(this);
+        if (item) {
+            args.push(item.prototype);
         }
-      });
     });
-  })(args);
+
+    // from:https://github.com/jserz/js_piece/blob/master/DOM/ChildNode/remove()/remove().md
+    (function (arr) {
+        arr.forEach(function (item) {
+            if (item.hasOwnProperty('remove')) {
+                return;
+            }
+            Object.defineProperty(item, 'remove', {
+                configurable: true,
+                enumerable: true,
+                writable: true,
+                value: function remove() {
+                    this.parentNode.removeChild(this);
+                }
+            });
+        });
+    })(args);
 })();
 // var categoryItem,
 //     channelItemHeight,
@@ -5394,7 +5233,16 @@ Factory.prototype.checkType = function(type) {
             break;
     }
 };
-function StalkerPlayer () {}
+function StalkerPlayer () {
+    this.audio = stbAudioManager.list[0];
+    this.audio.volume = 80;
+    this.localData = 'localData';
+    // var data = this.prepareData(gSTB.LoadUserData(this.localData), true);
+    // for (key in data) {
+    //     delete data[key];
+    // }
+    // gSTB.SaveUserData(this.localData, this.prepareData(data, false));
+}
 
 StalkerPlayer.prototype.play = function (url) {
     stbVideo.play({
@@ -5423,6 +5271,41 @@ StalkerPlayer.prototype.mute_video = function() {
 StalkerPlayer.prototype.unmute_video = function() {
     stbVideo.mute = false;
 };
+
+//local- and session- storages
+StalkerPlayer.prototype.prepareData = function(data, isString) {
+    if (isString) {
+        if (data) return JSON.parse(data);
+    }
+    else return JSON.stringify(data);
+};
+
+StalkerPlayer.prototype.setLocalStorage = function(key, value) {
+    var data = this.prepareData(gSTB.LoadUserData(this.localData), true);
+    if (!data) data = {};
+    data[key] = value;
+    gSTB.SaveUserData(this.localData, this.prepareData(data, false));
+};
+
+StalkerPlayer.prototype.getLocalStorage = function(key) {
+    var data = this.prepareData(gSTB.LoadUserData(this.localData), true);
+    if (data) return data[key];
+};
+
+StalkerPlayer.prototype.removeItemLocalStorage = function(key) {
+    var data = this.prepareData(gSTB.LoadUserData(this.localData), true);
+    delete data[key];
+    gSTB.SaveUserData(this.localData, this.prepareData(data, false));
+};
+
+StalkerPlayer.prototype.setSessionStorage = function(key, value) {
+    stbStorage.setItem(key, value);
+};
+
+StalkerPlayer.prototype.getSessionStorage = function(key) {
+    return stbStorage.getItem(key);
+};
+
 function Auth() {}
 
 Auth.prototype.modalError = false;
@@ -5434,8 +5317,9 @@ Auth.prototype.clientAuthorization = function (code, callback) {
     var body;
     var tvType;
     if (typeof callback === 'function') {
+        console.log('111111');
         tvType = callback();
-        //sessionStorage.setItem('tvType', tvType);   //потом вернуть!!! Это для первой выливки Сталкера
+        playback.setSessionStorage('tvType', tvType);   //потом вернуть!!! Это для первой выливки Сталкера
     }
     switch (tvType) {
         case 'WebOSLG':
@@ -5451,7 +5335,9 @@ Auth.prototype.clientAuthorization = function (code, callback) {
             body = iOSBuildBody();
             break;
         case 'Mag':
-            body = 'sn=1231321&model=22222&info=33333&version=1&platform=android&hash=8fd94ca5c8bc1439e141efa2a1d2ecc3';
+            //body = 'sn=1231321&model=22222&info=33333&version=1&platform=android&hash=79fe07520e89862e02b2d00fecf02ca9';
+            //console.log(stalker.buildBody());
+            body = stalker.buildBody();
             break;
         default:
             console.log('android');
@@ -5466,16 +5352,18 @@ Auth.prototype.clientAuthorization = function (code, callback) {
         if (data.success) {
             clientSettings.success = data.success;
             if (data.success.trashed) {
-                if (data.success.trashed.type == 'paused') {
+                if (data.success.trashed.type === 'paused') {
                     self.showAuthorizationPopup();
+                    console.log("(data.success.trashed.type === 'paused')");
                     self.renderPopupInfo();
                 } else {
-                    if (tvType == 'Desktop') {
+                    if (tvType === 'Desktop') {
                         document.getElementById('promo-line').classList.add('inactive');
-                        document.getElementById('promo-days-left').textContent = clientSettings.success.trashed.expired;
+                        document.getElementById('promo-days-left').textContent = ' ' + clientSettings.success.trashed.expired + ' ';
                         watchPromo();
                     } else {
                         self.showAuthorizationPopup();
+                        console.log("(data.success.trashed.type != 'paused')");
                         self.renderPopupInfo();
                     }
                 }
@@ -5483,6 +5371,7 @@ Auth.prototype.clientAuthorization = function (code, callback) {
                 Auth.prototype.ifAuthForm = false;
                 document.body.classList.remove('promo');
                 init();
+                renderUniq(clientSettings.success.uniq);
                 document.getElementById('activation-modal').classList.add('hidden');
             }
         } else if (data.error) {
@@ -5517,6 +5406,7 @@ Auth.prototype.renderPopupInfo = function (error) {
     var companyUrl = document.getElementById('company-url');
     if (error) {
         if (clientSettings.error.uniq) {
+            renderUniq(clientSettings.error.uniq);
             uniq.parentNode.classList.remove('hidden');
             uniq.textContent = formatString(clientSettings.error.uniq);
         }
@@ -5536,6 +5426,7 @@ Auth.prototype.renderPopupInfo = function (error) {
         }
     } else {
         if (clientSettings.success.uniq) {
+            renderUniq(clientSettings.success.uniq);
             uniq.parentNode.classList.remove('hidden');
             uniq.textContent = formatString(clientSettings.success.uniq);
         }
@@ -5611,7 +5502,7 @@ document.getElementById('watch-promo-btn').addEventListener('click', watchPromo)
 function watchPromo() {
     var promoLine = document.getElementById('promo-line');
     document.getElementById('activation-modal').classList.add('hidden');
-    promoLine.classList.remove('hidden');
+    //promoLine.classList.remove('hidden');
     if (typeof enterPromoInHorizontal === 'function') {
         enterPromoInHorizontal();
     }
@@ -5627,7 +5518,7 @@ function watchPromo() {
         }
         Auth.prototype.ifAuthForm = false;
         init();
-        
+
     } else {
         Auth.prototype.ifAuthForm = false;
     }
@@ -5712,7 +5603,7 @@ function iOSBuildBody() {
     var version = 'version=1';
     var platform = 'platform=ios';
     var hash = 'hash=' + localStorage.getItem('hash');
-    
+
     return deviceSerial + '&' + deviceModel + '&' + deviceInfo + '&' + version + '&' + platform + '&' + hash;
 };
 var EPG_BASIC_URL = 'https://cdnua01.hls.tv/epg/v3/';
@@ -5755,7 +5646,7 @@ var RELOAD_TIME = 1500000;
             }, this);
         },
         toggle: function(name) {
-            return this.contains(name) 
+            return this.contains(name)
                 ? (this.remove(name), false) : (this.add(name), true);
         },
         contains: function(name) {
@@ -5782,81 +5673,32 @@ var RELOAD_TIME = 1500000;
     }
 })();
 if (!window.JSON) {
-  window.JSON = {
-    parse: function(sJSON) { return eval('(' + sJSON + ')'); },
-    stringify: function(vContent) {
-      if (vContent instanceof Object) {
-        var sOutput = '';
-        if (vContent.constructor === Array) {
-          for (var nId = 0; nId < vContent.length; sOutput += this.stringify(vContent[nId]) + ',', nId++);
-          return '[' + sOutput.substr(0, sOutput.length - 1) + ']';
+    window.JSON = {
+        parse: function(sJSON) { return eval('(' + sJSON + ')'); },
+        stringify: function(vContent) {
+            if (vContent instanceof Object) {
+                var sOutput = '';
+                if (vContent.constructor === Array) {
+                    for (var nId = 0; nId < vContent.length; sOutput += this.stringify(vContent[nId]) + ',', nId++);
+                    return '[' + sOutput.substr(0, sOutput.length - 1) + ']';
+                }
+                if (vContent.toString !== Object.prototype.toString) {
+                    return '"' + vContent.toString().replace(/"/g, '\\$&') + '"';
+                }
+                for (var sProp in vContent) {
+                    sOutput += '"' + sProp.replace(/"/g, '\\$&') + '":' + this.stringify(vContent[sProp]) + ',';
+                }
+                return '{' + sOutput.substr(0, sOutput.length - 1) + '}';
+            }
+            return typeof vContent === 'string' ? '"' + vContent.replace(/"/g, '\\$&') + '"' : String(vContent);
         }
-        if (vContent.toString !== Object.prototype.toString) {
-          return '"' + vContent.toString().replace(/"/g, '\\$&') + '"';
-        }
-        for (var sProp in vContent) {
-          sOutput += '"' + sProp.replace(/"/g, '\\$&') + '":' + this.stringify(vContent[sProp]) + ',';
-        }
-        return '{' + sOutput.substr(0, sOutput.length - 1) + '}';
-     }
-     return typeof vContent === 'string' ? '"' + vContent.replace(/"/g, '\\$&') + '"' : String(vContent);
-    }
-  };
+    };
 }
 init = function () {
     Player.prototype.getM3UJson();
-    Player.prototype.loadEpg(Player.prototype.buildBasicEpgURL(getLanguage()));
     document.getElementsByClassName('main-content')[0].classList.remove('hidden');
 };
 var AUTH_URL = 'https://cdnua01.hls.tv/v3/hlsclient/auth';
-//переопределить потом в epg.js
-// store: function (epg) {
-//     console.log('STORE-EPG');
-//     if (!Array.isArray(epg)) {
-//         console.error("Error: can't parse epg data");
-//         return false;
-//     }
-//
-//     stbStorage.clear();
-//     for (var ch_data_i in epg) {
-//         var ch_data = epg[ch_data_i];
-//         var ch_id = ch_data.channel_id;
-//         var epg_data_i = 0;
-//
-//         for (epg_data_i in ch_data.list) {
-//             var epg_data = ch_data.list[epg_data_i];
-//             var is_details = 0;
-//             var store_data = [epg_data.start_at, epg_data.stop_at, epg_data.id, is_details, epg_data.title];
-//             stbStorage.setItem(this.epg_key + ch_id + ':' + epg_data_i, store_data);
-//         }
-//
-//         stbStorage.setItem(this.epg_index + ch_id, epg_data_i);
-//     }
-//     console.log(stbStorage.length);
-// },
-//
-// searchProgram: function (ch_id, date) {
-//     var self = this;
-//     var searchTime = (date.getTime() / 1000) | 0;
-//     //console.log(searchTime);
-//     var ch_data_i = stbStorage.getItem(this.epg_index + ch_id);
-//     if (!ch_data_i) {
-//         return null;
-//     }
-//
-//     for (var epg_data_i = 0; epg_data_i <= ch_data_i; epg_data_i++) {
-//         var item = stbStorage.getItem(this.epg_key + ch_id + ':' + epg_data_i);
-//         item = item ? item.split(',', 5) : null;
-//
-//         if (item && item[0] <= searchTime && item[1] >= searchTime) {
-//             //console.log(item);
-//             return item;
-//         }
-//     }
-//     return null;
-// }
-
-
 
 video = document.getElementById('video-container');
 
@@ -5882,11 +5724,24 @@ var NAV_ERORR_HANDLER_CHANNELS = "error_handler_channels";
 var NAV_ERORR_HANDLER_EPG = "error_handler_epg";
 var NAV_ERORR_HANDLER_EXT_EPG = "error_handler_ext_epg";
 var NAV_PROMO_LINE = "promo_line";
+var NAV_SEARCH_CHANNEL = "search-channel"
+var EXIT_POPUP = "exit_popup";
 
 var mag = {
+    navigation:false,
     currentObj:NAV_APP,
+    rightResetActiveBtn:false,
+    eyePopupFocus:false,
+    focusInputParentPassword:false,
     focusInputActivateCode:false,
-    idMenuIcon:false
+    memoryMode:false,
+    passwordPopup:false,
+    passwordUnblockPopup:false,
+    passwordCategory:false,
+    focusCategory:false,
+    closeSettings:false,
+    idMenuIcon:false,
+    keydownTimer: null
 };
 mag.setAppMode = function() {this.currentObj = NAV_APP;};
 /*focus menu icons*/
@@ -5922,6 +5777,10 @@ mag.setErrorHandlerExtEpgMode = function(){this.currentObj = NAV_ERORR_HANDLER_E
 mag.setPromoLineMode = function(){this.currentObj = NAV_PROMO_LINE;};
 /*setfocus last mode*/
 mag.setMode = function(currentObj){ this.currentObj = currentObj;};
+// set focus on search channel menu
+mag.setSearchChannelMode = function(){ this.currentObj = NAV_SEARCH_CHANNEL;};
+/*set focus on exitApp popup */
+mag.setExitAppPopupMode = function(){this.currentObj = EXIT_POPUP;};
 
 function Navigation () {
     Adapter.apply(this, arguments);
@@ -5930,14 +5789,17 @@ Navigation.prototype = Object.create(Adapter.prototype);
 Navigation.prototype.selectChannel = function () {
     stalker.selectChannel();
 };
-Navigation.prototype.openCategories = function () {
-    stalker.openCategories();
-};
-Navigation.prototype.watchEpg = function () {
-    stalker.watchEpg();
-};
 Navigation.prototype.returnFocusOnChannel = function () {
     returnFocusOnChannel();
+};
+Navigation.prototype.confirmAction = function () {
+    stalker.confirmAction();
+};
+Navigation.prototype.toggleFavorites = function () {
+    stalker.favoritesSwitch();
+};
+Navigation.prototype.toggleBlock = function () {
+    stalker.blockBtnAction();
 };
 var navigation = new Navigation();
 
@@ -5948,27 +5810,29 @@ mag.init = function () {
         if (navigation.ifActivationMode()) {
             mag.authorization();
         } else {
-            mag.openPlayback();
+            mag.setContentMode();
         }
         return tvType;
     });
-    //mag.openPlayback();
 };
 
 //наложение видео-контейнера и плейбека друг на друга
+//stbWindowMgr.setVirtualKeyboardInitAttr(JSON.stringify({height: 600, backgroundColor: "#46CE36"}));
 gSTB.SetTopWin(0);
 gSTB.SetMode(1);
 gSTB.SetTransparentColor(0);
 
 var stbVideo = stbPlayerManager.list[0];
-var instance = stbSurfaceManager.list[0];
 
 stbVideo.onPlayStart = function () {
     console.log('Video playback has begun.');
-    //mag.openPlayback();
 };
 
-window.addEventListener('keydown', function ( event ) {
+window.addEventListener('keydown', eventsList);
+
+function eventsList() {
+    console.log(mag.currentObj);
+    clearTimeout(mag.keydownTimer);
     switch (event.keyCode) {
         case 13: //enter
             console.log('enter');
@@ -5977,9 +5841,9 @@ window.addEventListener('keydown', function ( event ) {
                     mag.focusElementActivation();
                     break;
                 case NAV_CONTENT :
-                    navigation.showPlayback();
-                    mag.setPlayerPanelUpMode();
-                    navigation.setFocusOnPause();
+                    // navigation.showPlayback();
+                    // mag.setPlayerPanelUpMode();
+                    // navigation.setFocusOnPause();
                     break;
                 case NAV_MENU_ICON :
                     mag.openMenu();
@@ -5994,16 +5858,14 @@ window.addEventListener('keydown', function ( event ) {
                     navigation.selectChannel();
                     navigation.removeFocusFromMenusIcons();
                     navigation.closeLeftMenu();
-                    mag.openPlayback();
+                    navigation.hidePlayback();
+                    mag.setContentMode();
                     break;
                 case(NAV_MENU_LEFT_INFO_PROGRAM_GALLERY):
                     navigation.setGalleryImg();
                     break;
                 case NAV_MENU_LEFT_CATEGORY :
-                    navigation.setFirstChannelActive();
-                    navigation.clearChannelScroll();
-                    mag.setChannelsMode();
-                    stalker.channelActive = null;
+                    mag.selecCategoryFocus();
                     break;
                 case(NAV_PROMO_LINE):
                     navigation.removeFocusFromPromoLine();
@@ -6015,12 +5877,48 @@ window.addEventListener('keydown', function ( event ) {
                     navigation.showAuthorizationPopup();
                     mag.setAuthorizationMode();
                     break;
+                case NAV_MENU_RIGHT :
+                    mag.openRightMenuContent();
+                    break;
+                case(NAV_MENU_RIGHT_PARENT_CONTROL):
+                    mag.focusInputPasswordParentRight();
+                    break;
+                case(NAV_MENU_RIGHT_PARENT_CONTROL_INPUT):
+                    mag.showHideInputPassword();
+                    break;
+                case(NAV_MENU_RIGHT_LANG):
+                    mag.setLanguage();
+                    break;
+                case NAV_POPUP_BLOCKED :
+                    if(!mag.eyePopupFocus) mag.focusPopup ();
+                    else mag.showHideInputPassword();
+                    break;
+                case NAV_SEARCH_CHANNEL :
+                    clearTimeout(searchChannelTimer);
+                    mag.searchingChannelSelect();
+                    break;
+                case EXIT_POPUP :
+                    if (mag.getFocusedBtnExitPopup() == 'exitBtn') mag.exitFromApp();
+                    else {
+                        mag.removeFocusesFromExitPopup();
+                        mag.closeExitPopup();
+                        mag.setContentMode();
+                    }
+                    break;
             }
             break;
         case 27:
-        case 8:
             console.log('back');
             switch (mag.currentObj) {
+                case NAV_AUTHORIZATION :
+                    mag.exitFromApp();
+                    break;
+                case NAV_CONTENT :
+                    console.log("exit");
+                    mag.setExitAppPopupMode();
+                    mag.openExitPopup();
+                    mag.focusOnExitAppConfirmBtn();
+                    break;
                 case NAV_PROMO_LINE :
                     navigation.hidePlayback();
                     mag.setContentMode();
@@ -6048,7 +5946,7 @@ window.addEventListener('keydown', function ( event ) {
                     navigation.hidePlayback();
                     navigation.removeFocusFromMenusIcons();
                     navigation.closeLeftMenu();
-                    navigation.clearChannelScroll();
+                    //navigation.clearChannelScroll();
                     break;
                 case(NAV_MENU_LEFT_PROGRAMS):
                     navigation.hidePlayback();
@@ -6070,10 +5968,42 @@ window.addEventListener('keydown', function ( event ) {
                     break;
                 case(NAV_MENU_LEFT_INFO_PROGRAM_TEXT):
                     navigation.hidePlayback();
-                    navigation.removeFocusFromMenusIcons();
+                    navigation.usFromMenusIcons();
                     navigation.closeLeftMenu();
                     mag.setContentMode();
                     navigation.removeFocusFromAboutText();
+                    break;
+                case NAV_MENU_RIGHT :
+                    mag.closeRightMenu();
+                    break;
+                case NAV_MENU_RIGHT_PARENT_CONTROL :
+                    navigation.hidePlayback();
+                    navigation.removeFocusFromMenusIcons();
+                    navigation.closeRightMenu();
+                    mag.setContentMode();
+                    break;
+                case NAV_MENU_RIGHT_PARENT_CONTROL_INPUT :
+                    navigation.hidePlayback();
+                    navigation.removeFocusFromMenusIcons();
+                    navigation.closeRightMenu();
+                    mag.setContentMode();
+                    break;
+                case NAV_MENU_RIGHT_LANG :
+                    navigation.hidePlayback();
+                    navigation.removeFocusFromMenusIcons();
+                    navigation.closeRightMenu();
+                    mag.setContentMode();
+                    break;
+                case NAV_POPUP_BLOCKED :
+                    mag.cancelPopup();
+                    break;
+                case NAV_SEARCH_CHANNEL :
+                    mag.removeLastDigit();
+                    break;
+                case EXIT_POPUP :
+                    mag.removeFocusesFromExitPopup();
+                    mag.closeExitPopup();
+                    mag.setContentMode();
                     break;
             }
             break;
@@ -6135,6 +6065,28 @@ window.addEventListener('keydown', function ( event ) {
                     navigation.closeExtendedEpg();
                     mag.setProgramsMode();
                     break;
+                case NAV_MENU_RIGHT :
+                    mag.openRightMenuContent();
+                    break;
+                case NAV_MENU_RIGHT_PARENT_CONTROL :
+                    navigation.toggleRightMenuItem();
+                    mag.setSettingsMode();
+                    break;
+                case NAV_MENU_RIGHT_PARENT_CONTROL_INPUT :
+                    navigation.leftInParentControl();
+                    mag.setSettingsParentControlMode();
+                    break;
+                case(NAV_MENU_RIGHT_LANG):
+                    // mag.prevLanguage();
+                    mag.closeRightMenu();
+                    break;
+                case(NAV_POPUP_BLOCKED):
+                    mag.setFocusPopup("LEFT");
+                    break;
+                case EXIT_POPUP :
+                    mag.removeFocusesFromExitPopup();
+                    mag.focusOnExitAppCancelBtn();
+                    break;
             }
             break;
         case 39: // right-button
@@ -6154,6 +6106,10 @@ window.addEventListener('keydown', function ( event ) {
                         navigation.setFocusOnActivationClose();
                     }
                     break;
+                case(NAV_CONTENT):
+                    mag.menu("RIGHT");
+                    mag.openRightMenuContent();
+                    break;
                 case NAV_MENU_ICON :
                     mag.focusMenuIcon();
                     break;
@@ -6168,7 +6124,7 @@ window.addEventListener('keydown', function ( event ) {
                     stalker.setActiveFirstEpgItem();
                     break;
                 case(NAV_MENU_LEFT_PROGRAMS):
-                    mag.openExtendedEpgForChannels();
+                    // mag.openExtendedEpgForChannels();
                     break;
                 case(NAV_MENU_LEFT_INFO_PROGRAM):
                     if(navigation.ifHasGallery()){
@@ -6186,15 +6142,29 @@ window.addEventListener('keydown', function ( event ) {
                     }
                     break;
                 case NAV_MENU_LEFT_CATEGORY :
-                    navigation.setFirstChannelActive();
-                    navigation.clearChannelScroll();
-                    mag.setChannelsMode();
-                    var elems = document.querySelectorAll(".item-active");
-                    console.log(elems.length);
-                    for (i=0;i<elems.length;i++) {
-                        console.log(elems[i].className);
-                    }
-                    stalker.channelActive = null;
+                    mag.selecCategoryFocus();
+                    // navigation.setFirstChannelActive();
+                    // navigation.clearChannelScroll();
+                    // mag.setChannelsMode();
+                    // stalker.channelActive = null;
+                    break;
+                case NAV_MENU_RIGHT :
+                    mag.closeRightMenu();
+                    break;
+                case NAV_MENU_RIGHT_PARENT_CONTROL :
+                    navigation.rightInParentControl();
+                    mag.setSettingsParentControlInputMode();
+                    mag.blurInputPassword();
+                    break;
+                case(NAV_MENU_RIGHT_LANG):
+                    if(!mag.rightResetActiveBtn) navigation.nextLanguageFocus();
+                    break;
+                case NAV_POPUP_BLOCKED :
+                    mag.setFocusPopup("RIGHT");
+                    break;
+                case EXIT_POPUP :
+                    mag.removeFocusesFromExitPopup();
+                    mag.focusOnExitAppConfirmBtn();
                     break;
             }
             break;
@@ -6234,10 +6204,12 @@ window.addEventListener('keydown', function ( event ) {
                     break;
                 case NAV_MENU_LEFT_CHANNELS :
                     stalker.prevChannelInList();
+                    mag.pauseKeydownListener();
                     break;
                 case NAV_MENU_LEFT_PROGRAMS :
                     console.log('epg-up');
                     navigation.prevEpginList();
+                    mag.pauseKeydownListener();
                     break;
                 case(NAV_MENU_LEFT_INFO_PROGRAM_TEXT):
                     if(navigation.ifAboutTextNotScroll()){
@@ -6250,7 +6222,27 @@ window.addEventListener('keydown', function ( event ) {
                     break;
                 case NAV_MENU_LEFT_CATEGORY :
                     navigation.prevCategoryInList();
-                    mag.selecCategoryFocus();
+                    //mag.selecCategoryFocus();
+                    mag.pauseKeydownListener();
+                    break;
+                case NAV_MENU_RIGHT :
+                    navigation.prevMenuItemInList();
+                    break;
+                case NAV_MENU_RIGHT_PARENT_CONTROL :
+                    navigation.upInParentControl();
+                    mag.blurInputPassword();
+                    break;
+                case NAV_MENU_RIGHT_PARENT_CONTROL_INPUT :
+                    navigation.upInParentControl();
+                    break;
+                case(NAV_MENU_RIGHT_LANG):
+                    if(mag.rightResetActiveBtn){
+                        navigation.setFocusOnFirstLangBtn();
+                    }
+                    mag.rightResetActiveBtn = false;
+                    break;
+                case(NAV_POPUP_BLOCKED):
+                    mag.setFocusPopup("UP");
                     break;
             }
             break;
@@ -6267,16 +6259,16 @@ window.addEventListener('keydown', function ( event ) {
                         navigation.nextChannel();
                     }
                     else{
-                        navigation.showPlayback();
-                        mag.setPlayerPanelUpMode();
-                        navigation.setFocusOnPause();
+                        // navigation.showPlayback();
+                        // mag.setPlayerPanelUpMode();
+                        // navigation.setFocusOnPause();
                     }
                     break;
                 case NAV_MENU_ICON :
-                    navigation.removeFocusFromMenusIcons();
-                    navigation.showPlayback();
-                    mag.setPlayerPanelUpMode();
-                    navigation.setFocusOnPause();
+                    // navigation.removeFocusFromMenusIcons();
+                    // navigation.showPlayback();
+                    // mag.setPlayerPanelUpMode();
+                    // navigation.setFocusOnPause();
                     break;
                 case NAV_PLAYER_PANEL_UP :
                     navigation.downPlaybackItem();
@@ -6284,9 +6276,11 @@ window.addEventListener('keydown', function ( event ) {
                     break;
                 case NAV_MENU_LEFT_CHANNELS :
                     stalker.nextChannelInList();
+                    mag.pauseKeydownListener();
                     break;
                 case NAV_MENU_LEFT_PROGRAMS :
                     navigation.nextEpginList();
+                    mag.pauseKeydownListener();
                     break;
                 case(NAV_MENU_LEFT_INFO_PROGRAM_GALLERY):
                     if(navigation.ifHasAboutText()){
@@ -6300,7 +6294,8 @@ window.addEventListener('keydown', function ( event ) {
                     break;
                 case NAV_MENU_LEFT_CATEGORY :
                     navigation.nextCategoryInList();
-                    mag.selecCategoryFocus();
+                    //mag.selecCategoryFocus();
+                    mag.pauseKeydownListener();
                     break;
                 case NAV_PROMO_LINE :
                     mag.setMenuIconsMode();
@@ -6317,164 +6312,118 @@ window.addEventListener('keydown', function ( event ) {
                     }
                     mag.idMenuIcon = false;
                     break;
+                case NAV_MENU_RIGHT :
+                    navigation.nextMenuItemInList();
+                    break;
+                case(NAV_MENU_RIGHT_PARENT_CONTROL):
+                    navigation.downInParentControl();
+                    mag.blurInputPassword();
+                    break;
+                case(NAV_MENU_RIGHT_PARENT_CONTROL_INPUT):
+                    navigation.downInParentControl();
+                    switch(navigation.getFocusedParentRight()){
+                        case("settings-btn"):
+                            mag.setSettingsParentControlMode();
+                            break;
+                    }
+                    break;
+                case(NAV_MENU_RIGHT_LANG):
+                    mag.rightResetActiveBtn = true;
+                    navigation.setFocusOnSettingsBtn();
+                    break;
+                case(NAV_POPUP_BLOCKED):
+                    mag.setFocusPopup("DOWN");
+                    break;
             }
             break;
-        case 89: //info
-            console.log('info');
+        case 9: // next/prev channel
+            switch (mag.currentObj) {
+                case(NAV_CONTENT):
+                    if ( event.shiftKey ) {
+                        navigation.prevChannel();
+                    }
+                    else {
+                        navigation.nextChannel();
+                    }
+                    break;
+            }
             break;
         case 107: // volume up
-            stbVideo.volume++;
+            stbVideo.volume += 5;
+            stalker.changeVolume(stbVideo.volume);
             break;
         case 109: // volume down
-            stbVideo.volume--;
+            if (stbVideo.volume != 0){
+                stbVideo.volume -= 5;
+            }
+            stalker.changeVolume(stbVideo.volume);
+            break;
+        case 192: // volume off/on
+            if (gSTB.GetMute() == 0) playback.mute_video();//if not muted
+                else playback.unmute_video();
+            break;
+        case 48: // 0-9
+            if(mag.currentObj == NAV_CONTENT || mag.currentObj == NAV_SEARCH_CHANNEL) {
+                mag.initChSearch('0');
+            }
+            break;
+        case 49:
+            if(mag.currentObj == NAV_CONTENT || mag.currentObj == NAV_SEARCH_CHANNEL) {
+                mag.initChSearch('1');
+            }
+            break;
+        case 50:
+            if(mag.currentObj == NAV_CONTENT || mag.currentObj == NAV_SEARCH_CHANNEL) {
+                mag.initChSearch('2');
+            }
+            break;
+        case 51:
+            if(mag.currentObj == NAV_CONTENT || mag.currentObj == NAV_SEARCH_CHANNEL) {
+                mag.initChSearch('3');
+            }
+            break;
+        case 52:
+            if(mag.currentObj == NAV_CONTENT || mag.currentObj == NAV_SEARCH_CHANNEL) {
+                mag.initChSearch('4');
+            }
+            break;
+        case 53:
+            if(mag.currentObj == NAV_CONTENT || mag.currentObj == NAV_SEARCH_CHANNEL) {
+                mag.initChSearch('5');
+            }
+            break;
+        case 54:
+            if(mag.currentObj == NAV_CONTENT || mag.currentObj == NAV_SEARCH_CHANNEL) {
+                mag.initChSearch('6');
+            }
+            break;
+        case 55:
+            if(mag.currentObj == NAV_CONTENT || mag.currentObj == NAV_SEARCH_CHANNEL) {
+                mag.initChSearch('7');
+            }
+            break;
+        case 56:
+            if(mag.currentObj == NAV_CONTENT || mag.currentObj == NAV_SEARCH_CHANNEL) {
+                mag.initChSearch('8');
+            }
+            break;
+        case 57:
+            if(mag.currentObj == NAV_CONTENT || mag.currentObj == NAV_SEARCH_CHANNEL) {
+                mag.initChSearch('9');
+            }
             break;
     }
-});
+}
 
 window.onload = function() {
     function Stalker() {
         this.channelActive = null;
+        this.volumeTimer = null;
         Player.apply(this, arguments);
     }
     Stalker.prototype = Object.create(Player.prototype);
     Stalker.prototype.setVideoType = function () {
         playback = new Factory().checkType('stalker');
-    };
-
-    Stalker.prototype.playOrPause = function () {
-        var playPauseImg = document.getElementById('play-pause-btn-img');
-        if (stbVideo.state == 3) {
-            stbVideo.resume();
-            playPauseImg.setAttribute('src', 'images/icons/pause-button.png');
-        }
-        else {
-            stbVideo.pause();
-            playPauseImg.setAttribute('src', 'images/icons/play-main-btn.png');
-        }
-    };
-
-    //  Обрабатываем JSON с epg
-    // Stalker.prototype.loadEpg = function (url, callback) {
-    //     console.log('stalker.loadEpg');
-    //     var self = this;
-    //     var xhr = new XMLHttpRequest();
-    //     xhr.open('GET', url, true);
-    //     //xhr.responseType = "json";
-    //     xhr.onload = function() {
-    //         epg.store(JSON.parse(this.responseText));
-    //         if(xhr.readyState == 4 && xhr.status === 200) {
-    //             if (callback) {
-    //                 callback();
-    //             }
-    //             self.initRename();
-    //         }
-    //     };
-    //     xhr.onerror = function() {
-    //         console.log( 'Ошибка ' + this.status );
-    //     };
-    //     xhr.send();
-    // };
-
-    //листаем список каналов вверх
-    Stalker.prototype.prevChannelInList = function () {
-        if (!this.channelActive) {
-            this.channelActive = document.querySelector(".ch-item.item-active");
-        }
-        var currentChannel = document.getElementsByClassName("ch-item item-active")[0];
-        this.channelActive.classList.remove("ch-item_active", "item-active");
-        var prevChannel = this.channelActive.previousSibling;
-        if (prevChannel && prevChannel.tagName == 'DIV') {
-            prevChannel.classList.add("ch-item_active", "item-active");
-            this.channelActive = prevChannel;
-        }
-        else {
-            document.querySelectorAll('._channels_group:not(.hidden) .ch-item:last-child')[0].classList.add("ch-item_active", "item-active");
-            this.channelActive = document.querySelectorAll('._channels_group:not(.hidden) .ch-item:last-child')[0];
-        }
-        this.channelListScroll(this.channelActive, 'prev');
-        var activeChannel = document.querySelector('.ch-item.item-active');
-        Player.prototype.channelMouseOver(activeChannel);
-    };
-
-//листаем список каналов вниз
-    Stalker.prototype.nextChannelInList = function () {
-        var nextChannel;
-        if (this.channelActive == null) {
-            this.channelActive = document.querySelector(".ch-item.item-active");
-        }
-        var currentChannel = this.channelActive;
-        this.channelActive.classList.remove("ch-item_active", "item-active");
-        if (this.channelActive.nextElementSibling) {
-            nextChannel = this.channelActive.nextSibling;
-            if (nextChannel.getAttribute("_cid")) {
-                nextChannel.classList.add("ch-item_active", "item-active");
-            }
-        }
-        else {
-            document.querySelectorAll('._channels_group:not(.hidden) ._channel:nth-child(2)')[0].classList.add("ch-item_active", "item-active");
-        }
-        this.channelActive = nextChannel;
-        this.channelListScroll(currentChannel, 'next');
-        var activeChannel = document.querySelector('._channel.item-active');
-        Player.prototype.channelMouseOver(activeChannel);
-    };
-
-    var channelContainerScroll = 0;
-    Stalker.prototype.channelListScroll = function (currentChannel, direction) {
-        if (direction == 'next') {
-            if (currentChannel.nextSibling) {       //текущий канал НЕ последний
-                var nextChannel = currentChannel.nextSibling;
-                var isVisible = checkIfVisible(nextChannel);
-                if (!isVisible) {
-                    nextChannel.scrollIntoView();
-                    //channelContainerScroll = currentChannel.getBoundingClientRect().top;
-                }
-            }
-            else {                                  //текущий канал последний
-                //channelContainerScroll = 0;
-                channelGroupsContainer.scrollTop = 0;
-            }
-        }
-        else if (direction == 'prev') {     //здесь currentChannel уже является следующим наведенным каналом
-            if (currentChannel.nextSibling) {       //текущий канал НЕ первый
-                //var isVisible = checkIfVisible(currentChannel);
-                //if (prevChannelPosTop <= containerPosTop) {
-                if (!isVisible) {
-                    currentChannel.scrollIntoView();
-                    //channelContainerScroll = currentChannel.getBoundingClientRect().top;
-                }
-            }
-            else {                                                       //текущий канал первый
-                //channelContainerScroll = currentChannel.getBoundingClientRect().top;
-                //currentChannel.scrollIntoView();
-            }
-        }
-    };
-
-    Stalker.prototype.openCategories = function () {
-        // var elems = document.querySelectorAll("._render_epg_btn");
-        // console.log(elems.length);
-        // for (var i = 0; i< elems.length; i++) {
-        //     elems[i].classList.add("hidden");
-        // }
-        elems = document.querySelectorAll(".categories-container, .block-with-arrows");
-        for (var i = 0; i< elems.length; i++) {
-            elems[i].classList.remove("hidden");
-        }
-        var arrow = document.getElementsByClassName("main-menu-header-arrow-container")[0];
-        arrow.className = arrow.className.replace(/\bmirror-vertical\b/g, "");
-        //Проверить работу этого при манипуляциях с блокировкой каналов ======>
-        if (!document.getElementsByClassName("category-item-container current-item")[0]) {
-            document.getElementsByClassName("_category_all")[0].classList.add("current-item");
-        }
-        // <=======
-        document.getElementsByClassName("category-item-container current-item")[0].classList.add("item-active");
-        document.getElementById('arrows-container').classList.add("block-with-arrows_55vw");
-        //var mainMenu = document.getElementById('main-menu');
-        //mainMenu.className += " open-categories";
-        var elem = document.getElementsByClassName("ch-item item-active")[0];
-        elem.className = elem.className.replace(/\bitem-active\b/g, "");
-        setWidth("main-menu", 55);
     };
 
     //ставим фиолетовый фокус на первый достпный элемент из списка Епг
@@ -6499,21 +6448,76 @@ window.onload = function() {
         }
     };
 
-    //убираем классы фокуса у текущего сфокусированного канала из списка
-    Stalker.prototype.removeClassesBeforeEpg = function () {
-        var channels = document.querySelectorAll('.ch-item.item-active');
-        for (var i = 0; i < channels.length; i++) {
-            channels[i].className = channels[i].className.replace(/\bchannel-item_active\b/g, "");
-            channels[i].className = channels[i].className.replace(/\bitem-active\b/g, "");
-        }
+    //дополняем методы блокировки/разблокировки и джобавление/удаление favorites для последующей успешной навигации по спискам каналов
+    Stalker.prototype.pushToBlocked = function (ch_id, btn) {
+        Player.prototype.pushToBlocked.apply(this, arguments);
+        this.channelActive = null;
+    };
+    Stalker.prototype.removeFromBlocked = function (ch_id, btn) {
+        Player.prototype.removeFromBlocked.apply(this, arguments);
+        this.channelActive = null;
+    };
+    Stalker.prototype.pushToFavorites = function (ch_id, btn, ganre_id) {
+        Player.prototype.pushToFavorites.apply(this, arguments);
+        this.channelActive = null;
+    };
+    Stalker.prototype.removeFromFavorites = function (ch_id, btn, ganre_id) {
+        Player.prototype.removeFromFavorites.apply(this, arguments);
+        this.channelActive = null;
+    };
+    Stalker.prototype.showUniq = function () {
+        document.getElementById('serial-number-container').classList.remove('hidden');
+        // if (typeof clientSettings.success.uniq != 'undefined') {
+        //     if (clientSettings.success.uniq) renderUniq(clientSettings.success.uniq);
+        // }
+    };
+
+    //for volume
+    Stalker.prototype.changeVolume = function (volume) {
+        var self = this;
+        clearTimeout(self.volumeTimer);
+        self.setVolumeInBar(volume);
+        self.showVolumebar();
+        self.volumeTimer = setTimeout(function () {
+            self.hideVolumebar();
+            clearTimeout(self.volumeTimer);
+        }, 3000);
+    };
+    Stalker.prototype.showVolumebar = function () {
+        volumeBar.classList.remove('hidden');
+    };
+    Stalker.prototype.hideVolumebar = function () {
+        volumeBar.className += " hidden";
+    };
+    Stalker.prototype.setVolumeInBar = function (volume) {
+        document.getElementsByClassName('volumebar-text')[0].textContent = volume;
+    };
+
+    //for auth
+    Stalker.prototype.getModel = function() {
+        return gSTB.GetDeviceModel();
+    };
+    Stalker.prototype.getSerialNumber = function() {
+        return gSTB.GetDeviceSerialNumber();
+    };
+    Stalker.prototype.getMacAddress = function() {
+        return gSTB.GetDeviceMacAddress();
+    };
+    Stalker.prototype.buildBody = function() {
+        var deviceSerial = 'sn=' + this.getSerialNumber();
+        var deviceModel = 'model=' + this.getModel();
+        var deviceInfo = 'info=StalkerDevice';
+        var version = 'version=1';
+        var platform = 'platform=mag';
+        var hash = 'hash=' + MD5(this.getMacAddress() + '' + this.getModel());
+        return deviceSerial + '&' + deviceModel + '&' + deviceInfo + '&' + version + '&' + platform + '&' + hash;
     };
 
     stalker = new Stalker();
     Stalker.prototype.constructor = Stalker;
     stalker.toggleVolume();
+    stalker.showUniq();
     document.getElementById('fullscreen-btn').classList.add('hidden');
-    volumeBtn.classList.remove('_active_btn');                                  //скрываем кнопку звука
-    volumeBtn.classList.add('video-controls__item_disabled');                   //скрываем кнопку звука
 
     // auth.clientAuthorization(null, function () {
     //     var tvType = 'Mag';
@@ -6522,11 +6526,88 @@ window.onload = function() {
 
     mag.init();
 };
+//инициализируем поиск каналов по цифрам
+mag.initChSearch = function (value) {
+    if (!(searchMenuValue.textContent.length == 0 && value == '0')) {
+        mag.setSearchChannelMode();
+        if (!mag.searchListOpen()) {
+            mag.unhideSearchMenu();
+        }
+        else {
+            clearTimeout(searchChannelTimer);
+        }
+        mag.addCharToSearchMenu(value);
+        searchChannelTimer = setTimeout(function () {
+            mag.searchingChannelSelect();
+        }, 3000);
+    }
+};
+
+mag.searchingChannelSelect = function () {
+    var value = searchMenuValue.textContent;
+    mag.hideAndClearSearch();
+    var channel = channelGroupsContainer.querySelector('._channels_group[ganre_id=all] .ch-item[_key="' + value + '"]');
+    if (channel) {      //собственно переключаем канал и, если необходимо, включаем категорию Олл в левой менюшке
+        var cid = channel.getAttribute("_cid");
+        stalker.selectChannel(cid);
+        var oldActiveChannels = channelGroupsContainer.querySelectorAll('.ch-item.item-active');
+        removeActiveClassFrom(oldActiveChannels);
+        hideCategoryContainers();
+        var categoryAll = document.querySelector('.category-item-container:not(.hidden)');
+        navigation.openChoosenCategoryList(categoryAll);
+    }
+};
+// проверяем открыто ли окно поиска каналов
+mag.searchListOpen = function () {
+    if (searchMenu.classList.contains('hidden')) {
+        return false;
+    } else {
+        return true;
+    }
+};
+// открываем окно поиска каналов
+mag.unhideSearchMenu = function() {
+    searchMenu.classList.remove('hidden');
+};
+// закрываем окно поиска каналов
+mag.hideSearchMenu = function () {
+    searchMenu.classList.add('hidden');
+};
+//скрываем и очищаем меню поиска
+mag.hideAndClearSearch = function () {
+    mag.clearSearchMenu();
+    mag.hideSearchMenu();
+    mag.setContentMode();
+    clearTimeout(searchChannelTimer);
+};
+// добавляем цифру в строку поиска каналов
+mag.addCharToSearchMenu = function (char) {
+    if (searchMenuValue.textContent.length < 4) {
+        searchMenuValue.textContent += char;
+    }
+};
+// очищаем строку поиска каналов
+mag.clearSearchMenu = function (char) {
+    searchMenuValue.textContent = '';
+};
+//убираем последнюю цифру из строки поиска
+mag.removeLastDigit = function () {
+    var value = searchMenuValue.textContent;
+    var newValue = value.slice(0, -1);
+    searchMenuValue.textContent = newValue;
+    clearTimeout(searchChannelTimer);
+    if (!newValue) {
+        this.hideAndClearSearch();
+    }
+    else {
+        searchChannelTimer = setTimeout(function () {
+            mag.searchingChannelSelect();
+        }, 3000);
+    }
+};
 
 mag.authorization = function(){
     mag.setAuthorizationMode();
-    console.log('navigation.getAuthError():');
-    console.log(navigation.getAuthError());
     if(!navigation.getAuthError()){
         if(navigation.ifPausedPromo()){
             console.log('paused_promo');
@@ -6546,11 +6627,14 @@ mag.focusElementActivation = function(){
         case("activation-code"):
             mag.focusInputActivateCode = navigation.getFocusedActivationInputId();
             document.getElementById(mag.focusInputActivateCode).focus();
+            gSTB.ShowVirtualKeyboard();
             break;
         case("activation-btn"):
             navigation.activateTariff(function(){
                 if(!navigation.ifActivationMode()){
-                    mag.openPlayback();
+                    //mag.openPlayback();
+                    navigation.hidePlayback();
+                    mag.setContentMode();
                 }
                 var tvType = 'Mag';
                 return tvType;
@@ -6558,7 +6642,9 @@ mag.focusElementActivation = function(){
             break;
         case("watch-promo-btn"):
             navigation.watchPromo();
-            mag.openPlayback();
+            //mag.openPlayback();
+            navigation.hidePlayback();
+            mag.setContentMode();
             break;
         case("retry-btn"):
             navigation.retryAuth(function(){
@@ -6568,7 +6654,7 @@ mag.focusElementActivation = function(){
             });
             break;
         case("close-app-btn"):
-            console.log("exit from app");
+            mag.exitFromApp();
             break;
     }
 };
@@ -6624,12 +6710,12 @@ mag.openMenu = function(){
     switch(navigation.getFocusedMenuIcon()){
         case("main-menu"):
             navigation.openLeftMenu();
-            navigation.clearChannelScroll();
+            //navigation.clearChannelScroll();
             mag.setChannelsMode();
             break;
         case("home-menu"):
-            // navigation.openRightMenu();
-            // mag.setSettingsMode();
+            navigation.openRightMenu();
+            mag.setSettingsMode();
             break;
         default:
             break;
@@ -6661,11 +6747,20 @@ mag.menu = function(event){
     }
 };
 
+mag.pauseKeydownListener = function() {
+    window.removeEventListener('keydown', eventsList);
+    this.keydownTimer = setTimeout(function (){
+        window.addEventListener('keydown', eventsList);
+    },0);
+};
+
 mag.openEpgForChannels = function(){
     //if(navigation.ifHasEpg()){
-    navigation.closeCategories();
+    if (navigation.ifCategoriesOpened()) {
+        navigation.closeCategories();
+    }
     //navigation.saveSelectedChannelId();                         //вернуть когда будет вмерджена ветка с обработкой ошибок xhr-запросов!!!
-    navigation.watchEpg(function(){
+    navigation.watchEpg(function () {
         mag.setErrorHandlerEpgMode();
         //navigation.setFocusOnErrorPopup();                        //вернуть когда будет вмерджена ветка с обработкой ошибок xhr-запросов!!!
     });
@@ -6687,10 +6782,368 @@ mag.openExtendedEpgForChannels = function(){
 mag.selecCategoryFocus = function(){
     switch(navigation.getFocusedCategory()){
         case("blocked"):
-            //mag.openPopup("category");
+            mag.openPopup("category");
+            break;
+        default:
+            mag.focusOnFirstChannel();
             break;
     }
 };
+
+mag.focusOnFirstChannel = function () {
+    navigation.setFirstChannelActive();
+    navigation.clearChannelScroll();
+    mag.setChannelsMode();
+    stalker.channelActive = null;
+};
+
+//right menu
+mag.closeRightMenu = function(){
+    navigation.hidePlayback();
+    navigation.removeFocusFromMenusIcons();
+    navigation.closeRightMenu();
+    mag.setContentMode();
+};
+
+mag.openRightMenuContent = function(){
+    switch(navigation.getFocusedMenuItem()){
+        case("parent-control"):
+            navigation.openParentControl();
+            mag.setSettingsParentControlMode();
+            navigation.setFocusOnParentControlInput();
+            break;
+        case("settings"):
+            navigation.openSettings();
+            mag.setSettingsLangMode();
+            // if(mag.rightResetActiveBtn){
+            //     mag.rightResetActiveBtn = false;
+            //     navigation.setFocusOnFirstLangBtn();
+            // }
+            // navigation.setFocusOnLang();
+            break;
+    }
+};
+
+mag.focusInputPasswordParentRight = function(){
+    switch(navigation.getFocusedParentRight()){
+        case("settings-btn"):
+            navigation.savePassword();
+            break;
+        default:
+            mag.focusInputParentPassword = navigation.getFocusedInputId();
+            document.getElementById(mag.focusInputParentPassword).focus();
+            gSTB.ShowVirtualKeyboard();
+            break;
+    }
+};
+
+mag.showHideInputPassword = function(){
+    var id = navigation.getFocusedEye();
+    navigation.togglePasswordVisibility(id);
+};
+
+mag.blurInputPassword = function(){
+    if(mag.focusInputParentPassword) document.getElementById(mag.focusInputParentPassword).blur();
+    mag.focusInputParentPassword = false;
+};
+
+mag.setLanguage = function(){
+    if(!mag.rightResetActiveBtn){
+        var id = navigation.getFocusedLang();
+        navigation.setLanguage(id);
+    }
+    else{
+        navigation.resetSettings();
+        mag.rightResetActiveBtn = false;
+        navigation.setFocusOnLang();
+    }
+};
+
+mag.prevLanguage = function(){
+    // if(!mag.rightResetActiveBtn){
+    //     navigation.prevLanguageFocus();
+    //     var id = navigation.getFocusedLang();
+    //     if(mag.closeSettings === id){
+    //         navigation.toggleRightMenuItem();
+    //         mag.setSettingsMode();
+    //         mag.closeSettings = false;
+    //     }
+    //     else{
+    //         mag.closeSettings = id;
+    //     }
+    //     console.log("prevLanguage", id);
+    // }
+    navigation.toggleRightMenuItem();
+    mag.setSettingsMode();
+    mag.closeSettings = false;
+};
+
+mag.openPopup = function(type){
+    mag.memoryMode = mag.currentObj;
+    switch(type){
+        case("panel"):
+            navigation.toggleBlock();
+            if(mag.focusCategory==="blocked"){
+                if(!mag.passwordUnblockPopup){
+                    mag.setPopupBlockedMode();
+                    navigation.setFocusOnPassPopup();
+                }
+                else{
+                    navigation.removeFocusFromPlayback();
+                    mag.setContentMode();
+                    mag.memoryMode = false;
+                }
+            }
+            else{
+                if(!mag.passwordPopup){
+                    console.log('1');
+                    mag.setPopupBlockedMode();
+                    navigation.setFocusOnPassPopup();
+                }
+                else{
+                    console.log('2');
+                    navigation.removeFocusFromPlayback();
+                    mag.setContentMode();
+                    mag.memoryMode = false;
+                }
+            }
+            break;
+        case("category"):
+            console.log(navigation.ifPassOnBlockEnterExist());
+            if (navigation.ifPassOnBlockEnterExist()){
+                navigation.openBlockedList();
+                navigation.setFirstChannelActive();
+                navigation.clearChannelScroll();
+                mag.setChannelsMode();
+                stalker.channelActive = null;
+                mag.memoryMode = false;
+            }
+            else {
+                var action_type = document.getElementsByClassName('category_blocked')[0].getAttribute('action_type');
+                var lang = getLanguage();
+                mainMenu.classList.add('hidden');
+                popup.classList.remove('hidden');
+                popupTitle.textContent = localization.langs[lang].enter_to_blocked;
+                popupConfirmBtn.setAttribute('action_type', action_type);
+                //navigation.openBlockedList();
+                mag.setPopupBlockedMode();
+                navigation.setFocusOnPassPopup();
+            }
+            mag.focusCategory = "blocked";
+            // if(!mag.passwordCategory){
+            //     mag.setPopupBlockedMode();
+            //     navigation.setFocusOnPassPopup();
+            // }else{
+            //     mag.memoryMode = false;
+            // }
+            // mag.focusCategory = "blocked";
+            break;
+    }
+};
+
+mag.focusPopup = function(){
+    switch(navigation.getFocusedElemInPopup()){
+        case("cancel-btn"):
+            console.log("cancel-btn");
+            mag.cancelPopup();
+            removeErrorAlerts();
+            stalker.clearAllInputs(popup);
+            navigation.removeFocusFromPopupItems();
+            stalker.closeConfirmWindow();
+            var categoryAll = document.querySelector('.category-item-container:not(.hidden)');
+            navigation.openChoosenCategoryList(categoryAll);
+            navigation.closeCategories();
+            //navigation.openCategories();
+            //mag.setCategoryMode();
+            navigation.hidePlayback();
+            mag.setContentMode();
+            //navigation.setFocusOnPause();
+            break;
+        case("savepass-btn"):
+            navigation.removeFocusFromPopupItems();
+            navigation.saveParentPassword();
+            navigation.setFocusOnPassPopup();
+            break;
+        case("confirm-btn"):
+            navigation.confirmAction();
+            navigation.removeFocusFromPopupItems();
+            if(mag.memoryMode === NAV_MENU_LEFT_CATEGORY){
+                mag.passwordCategory = navigation.ifPassOnBlockEnterExist();
+                if(mag.passwordCategory){
+                    mag.setMode(mag.memoryMode);
+                    mag.memoryMode = false;
+                    categoryBlocked.scrollIntoView();
+                    mag.focusOnFirstChannel();
+                }
+                else{
+                    navigation.setFocusOnPassPopup();
+                }
+                console.log("NAV_MENU_LEFT_CATEGORY ",navigation.ifPassOnBlockEnterExist());
+            }
+            else if(mag.memoryMode === NAV_PLAYER_PANEL_DOWN){
+                if(mag.focusCategory === "blocked"){
+                    mag.passwordUnblockPopup = navigation.ifPassOnUnblockExist();
+                    if(mag.passwordUnblockPopup){
+                        mag.cancelPopup();
+                    }
+                    else{
+                        navigation.setFocusOnPassPopup();
+                    }
+                    console.log("NAV_MENU_LEFT_CATEGORY focusCategory ",navigation.ifPassOnUnblockExist());
+                }
+                else{
+                    mag.passwordPopup = navigation.ifPassOnBlockExist();
+                    if(mag.passwordPopup){
+                        mag.cancelPopup();
+                    }
+                    else{
+                        navigation.setFocusOnPassPopup();
+                        console.log("NOT SAVE PASSWORD ",navigation.ifPassOnBlockExist());
+                    }
+                }
+                mag.focusCategory = false;
+            }
+            break;
+        default:
+            mag.focusInputPassword();
+            break;
+    }
+};
+
+mag.cancelPopup = function(){
+    navigation.cancelBtnClick();
+    navigation.removeFocusFromMenusIcons();
+    navigation.removeFocusFromPlayback();
+    mag.setContentMode();
+    navigation.removeFocusFromPopupItems();
+    mag.memoryMode = false;
+
+};
+
+mag.setFocusPopup = function(event){
+    switch(event){
+        case("LEFT"):
+            switch(navigation.getFocusedElemInPopup()){
+                case("cancel-btn"):
+                case("savepass-btn"):
+                case("confirm-btn"):
+                    navigation.leftInPopupPass();
+                    break;
+                default:
+                    if(mag.eyePopupFocus){
+                        navigation.leftInPopupPass();
+                        mag.eyePopupFocus = false;
+                    }
+                    break;
+            }
+            break;
+        case("RIGHT"):
+            switch(navigation.getFocusedElemInPopup()){
+                case("cancel-btn"):
+                case("savepass-btn"):
+                case("confirm-btn"):
+                    navigation.rightInPopupPass();
+                    break;
+                default:
+                    navigation.rightInPopupPass();
+                    mag.blurInputPassword();
+                    mag.eyePopupFocus = true;
+                    break;
+            }
+            break;
+        case("UP"):
+            switch(navigation.getFocusedElemInPopup()){
+                case("cancel-btn"):
+                case("savepass-btn"):
+                case("confirm-btn"):
+                    navigation.upInPopupPass();
+                    break;
+                default:
+                    if(!mag.eyePopupFocus){
+                        mag.blurInputPassword();
+                        navigation.upInPopupPass();
+                    }
+                    break;
+            }
+            break;
+        case("DOWN"):
+            switch(navigation.getFocusedElemInPopup()){
+                case("cancel-btn"):
+                case("savepass-btn"):
+                case("confirm-btn"):
+                    return false;
+                    break;
+                default:
+                    if(!mag.eyePopupFocus){
+                        mag.blurInputPassword();
+                        navigation.downInPopupPass();
+                    }
+                    break;
+            }
+            break;
+    }
+};
+
+mag.focusInputPassword = function(){
+    mag.focusInputParentPassword = navigation.getFocusedInputId();
+    document.getElementById(mag.focusInputParentPassword).focus();
+    gSTB.ShowVirtualKeyboard();
+};
+
+
+
+mag.openExitPopup = function () {
+    exitPopup.classList.remove('hidden');
+};
+mag.closeExitPopup = function () {
+    exitPopup.classList.add('hidden');
+};
+mag.focusOnExitAppConfirmBtn = function () {
+    exitPopupConfirmBtn.classList.add('active');
+};
+mag.focusOnExitAppCancelBtn = function () {
+    exitPopupCancelBtn.classList.add('active');
+};
+mag.getFocusedBtnExitPopup = function () {
+    var activeBtn = exitPopup.querySelectorAll('.settings-btn.active')[0];
+    if (activeBtn.getAttribute('id') == 'exit-popup-confirm-btn') return 'exitBtn';
+    else return 'cancelBtn';
+};
+mag.removeFocusesFromExitPopup = function() {
+    exitPopupConfirmBtn.classList.remove('active');
+    exitPopupCancelBtn.classList.remove('active');
+};
+mag.exitFromApp = function() {
+    gSTB.Stop();
+    var referrerObj = this.getRefferer();
+    var location = referrerObj.referrer;
+    var index = location.indexOf('/', 8);
+    location = location.slice(0, index);
+    location = location + '/stalker_portal/c/';
+    window.location = location;
+};
+
+mag.getRefferer = function(){
+    var url = window.location.href;
+    var x = url.indexOf('?');
+    var get = {};
+    if (x!=-1){
+        var l = url.length;
+        url= url.substr(x+1, l-x);
+        l = url.split('&');
+        x = 0;
+        for(var i in l){
+            if (l.hasOwnProperty(i)){
+                url= l[i].split('=');
+                get[url[0]] = decodeURIComponent(url[1]);
+                x++;
+            }
+        }
+    }
+    return get;
+};
+
+
 /*!
  * @license MIT
  * @preserve
@@ -6705,26 +7158,26 @@ mag.selecCategoryFocus = function(){
 ;(function(win,doc,undefined){"use strict";win.vUnit=function(options){var vunit=this;var opts=options||{};vunit.options={stylesheetId:opts.stylesheetId||"v-unit-stylesheet",viewportObserverInterval:opts.viewportObserverInterval||100,CSSMap:opts.CSSMap||null,onResize:opts.onResize||function(){}};vunit.viewportSize={height:0,width:0};vunit.init=function(){if(opts.CSSMap){return win.setInterval(function viewportObserver(){if(viewportHasChanged()){var stylesheet=createStylesheet();var CSSRules=createCSSRules();appendCSSRulesToStylesheet(CSSRules,stylesheet);appendStylesheetOnHead(stylesheet);vunit.options.onResize(vunit.viewportSize)}return viewportObserver}(),vunit.options.viewportObserverInterval)}else{return false}};var viewportHasChanged=function(){var currentViewportSize=calculateViewportSize();var differentHeight=currentViewportSize.height!==vunit.viewportSize.height;var differentWidth=currentViewportSize.width!==vunit.viewportSize.width;vunit.viewportSize=currentViewportSize;return differentHeight||differentWidth};var createStylesheet=function(){var stylesheet=doc.createElement("style");stylesheet.setAttribute("rel","stylesheet");stylesheet.setAttribute("type","text/css");stylesheet.setAttribute("media","screen");stylesheet.setAttribute("id",vunit.options.stylesheetId);return stylesheet};var createCSSRules=function(){var computedHeight=vunit.viewportSize.height/100;var computedWidth=vunit.viewportSize.width/100;var vmin=Math.min(computedWidth,computedHeight);var vmax=Math.max(computedWidth,computedHeight);var map=vunit.options.CSSMap;var CSSRules="";var value=0;for(var selector in map){var property=map[selector].property;for(var range=1;range<=100;range++){switch(map[selector].reference){case"vw":value=computedWidth*range;break;case"vh":value=computedHeight*range;break;case"vmin":value=vmin*range;break;case"vmax":value=vmax*range;break}var CSSRuleTemplate="_SELECTOR__RANGE_{_PROPERTY_:_VALUE_px}\n";CSSRules+=CSSRuleTemplate.replace("_SELECTOR_",selector).replace("_RANGE_",range).replace("_PROPERTY_",property).replace("_VALUE_",value)}}return CSSRules};var appendCSSRulesToStylesheet=function(CSSRules,stylesheet){if(stylesheet.styleSheet){stylesheet.styleSheet.cssText=CSSRules}else{stylesheet.appendChild(doc.createTextNode(CSSRules))}};var appendStylesheetOnHead=function(stylesheet){var head=doc.head||doc.getElementsByTagName("head")[0]||doc.documentElement;var legacyStylesheet=doc.getElementById(vunit.options.stylesheetId);if(legacyStylesheet){head.removeChild(legacyStylesheet)}head.appendChild(stylesheet)};var calculateViewportSize=function(){var viewportSize={height:doc.documentElement.clientHeight,width:doc.documentElement.clientWidth};return viewportSize}}})(window,document);
 
 new vUnit({
-      CSSMap: {
+    CSSMap: {
         // The selector (vUnit will create rules ranging from .selector1 to .selector100)
         '.width-': {
-          // The CSS property (any CSS property that accepts px as units)
-          property: 'width',
-          // What to base the value on (vh, vw, vmin or vmax)
-          reference: 'vw'
+            // The CSS property (any CSS property that accepts px as units)
+            property: 'width',
+            // What to base the value on (vh, vw, vmin or vmax)
+            reference: 'vw'
         },
         // Wanted to have a font-size based on the viewport width? You got it.
         '.vw_font-size': {
-          property: 'font-size',
-          reference: 'vw'
+            property: 'font-size',
+            reference: 'vw'
         },
         // vmin and vmax can be used as well.
         '.vmin_margin-top': {
-          property: 'margin-top',
-          reference: 'vmin'
+            property: 'margin-top',
+            reference: 'vmin'
         }
-      },
-      onResize: function() {
-        
-      }
-    }).init(); // call the public init() method
+    },
+    onResize: function() {
+
+    }
+}).init(); // call the public init() method
