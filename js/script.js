@@ -1204,6 +1204,21 @@ Adapter.prototype.getAuthError = function () {
     return Auth.prototype.getAuthError();
 };
 
+//проверяем доступна ли для клика кнопка Активировать, или же заблокированна (дабы избежать нескольких кликов подряд)
+Adapter.prototype.ifActivationButtonAvailable = function () {
+    return Auth.prototype.ifActivationButtonAvailable();
+};
+
+//блокируем нажатие на кнопку Активировать тариф
+Adapter.prototype.disableActivationButton = function () {
+    Auth.prototype.disableActivationButton();
+};
+
+//разблокируем нажатие на кнопку Активировать тариф
+Adapter.prototype.enableActivationButton = function () {
+    Auth.prototype.enableActivationButton();
+};
+
 //Проверяем установлен ли фокус на кнопке Смотреть промо. Если да - то навигация вправо-влево срабатывать не должна
 Adapter.prototype.ifFocusOnWatchPromo = function () {
     return ifFocusOnWatchPromo();
@@ -3211,26 +3226,26 @@ Player.prototype.renderAll = function (playlist, ganre_id, activeChannelId, curr
         var ch_obj = playlist.channels[item_i];
         // var blocked = this.searchBlockedCh(ch_obj.id);
         // if (!blocked) {
-            // Рендерим этот канал в категорию all channels -->
-            var allChTpl = all_container.getElementsByClassName('ch-item')[0];
-            var all_channel = allChTpl.cloneNode(true);
-            var ganreId = 'all';
-            this.renderChannelItem(all_channel, ch_obj, epgMode, item_i, ganreId);
-            all_channel.classList.remove('hidden');
-            all_container.appendChild(all_channel);
-            // var is_favorites = this.searchFavoriteCh(ch_obj.id);
-            // if (is_favorites) {
-            //     all_channel.getElementsByClassName('rating-container__favorites')[0].style.opacity = '1';
-            //     // Рендерим этот канал в категорию favorites -->
-            //     //this.renderToFavorites(favorit_container, ch_obj, epgMode, item_i, ganreId);
-            //     var favChTpl = favorit_container.getElementsByClassName('ch-item')[0];
-            //     var fav_channel = favChTpl.cloneNode(true);
-            //     var ganreId = 'favorites';
-            //     this.renderChannelItem(fav_channel, ch_obj, epgMode, item_i, ganreId);
-            //     fav_channel.getElementsByClassName('rating-container__favorites')[0].style.opacity = '1';
-            //     fav_channel.classList.remove('hidden');
-            //     favorit_container.appendChild(fav_channel);
-            // }
+        // Рендерим этот канал в категорию all channels -->
+        var allChTpl = all_container.getElementsByClassName('ch-item')[0];
+        var all_channel = allChTpl.cloneNode(true);
+        var ganreId = 'all';
+        this.renderChannelItem(all_channel, ch_obj, epgMode, item_i, ganreId);
+        all_channel.classList.remove('hidden');
+        all_container.appendChild(all_channel);
+        // var is_favorites = this.searchFavoriteCh(ch_obj.id);
+        // if (is_favorites) {
+        //     all_channel.getElementsByClassName('rating-container__favorites')[0].style.opacity = '1';
+        //     // Рендерим этот канал в категорию favorites -->
+        //     //this.renderToFavorites(favorit_container, ch_obj, epgMode, item_i, ganreId);
+        //     var favChTpl = favorit_container.getElementsByClassName('ch-item')[0];
+        //     var fav_channel = favChTpl.cloneNode(true);
+        //     var ganreId = 'favorites';
+        //     this.renderChannelItem(fav_channel, ch_obj, epgMode, item_i, ganreId);
+        //     fav_channel.getElementsByClassName('rating-container__favorites')[0].style.opacity = '1';
+        //     fav_channel.classList.remove('hidden');
+        //     favorit_container.appendChild(fav_channel);
+        // }
         // } else {
         //     // Рендерим этот канал в категорию blocked -->
         //     var blockedChTpl = blocked_container.getElementsByClassName('ch-item')[0];
@@ -4284,7 +4299,7 @@ Player.prototype.clearAllInputs = function (block) {
 //  Разные Helpers functions
 function addClassCurrentItem(elem) {
     if (elem)
-        //elem.classList.add("current-item");
+    //elem.classList.add("current-item");
         elem.className += "  current-item";
 }
 
@@ -5317,7 +5332,6 @@ Auth.prototype.clientAuthorization = function (code, callback) {
     var body;
     var tvType;
     if (typeof callback === 'function') {
-        console.log('111111');
         tvType = callback();
         playback.setSessionStorage('tvType', tvType);   //потом вернуть!!! Это для первой выливки Сталкера
     }
@@ -5345,9 +5359,11 @@ Auth.prototype.clientAuthorization = function (code, callback) {
     if (code) {
         body = body + '&code=' + code;
     }
+    self.disableActivationButton();
     xhr.open('POST', AUTH_URL, true);
     xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
     xhr.onload = function () {
+        self.enableActivationButton();
         var data = JSON.parse(this.responseText);
         if (data.success) {
             clientSettings.success = data.success;
@@ -5380,11 +5396,12 @@ Auth.prototype.clientAuthorization = function (code, callback) {
             self.renderPopupInfo(data.error, tvType);
             self.showAuthErrors(data.error);
         }
-        if (typeof callback  === 'function') {
+        if (typeof callback === 'function') {
             callback();
         }
     };
     xhr.onerror = function () {
+        self.enableActivationButton();
         var data = this.status;
         self.errorHandling(data);
     };
@@ -5563,6 +5580,22 @@ Auth.prototype.getAuthError = function () {
 //Этот же метод проверяет прошли ли мы авторизацию. Если мы прошли авторизацию то форма пропадает, а соотв. возвращается false
 Auth.prototype.ifActivationMode = function () {
     return Auth.prototype.ifAuthForm;
+};
+
+//проверяем доступна ли для клика кнопка Активировать, или же заблокированна (дабы избежать нескольких кликов подряд)
+Auth.prototype.ifActivationButtonAvailable = function () {
+    if (document.getElementById('activation-btn').classList.contains('disabled')) {
+        return false;
+    }
+    else return true;
+};
+//блокируем нажатие на кнопку Активировать тариф
+Auth.prototype.disableActivationButton = function () {
+    document.getElementById('activation-btn').classList.add('disabled');
+};
+//разблокируем нажатие на кнопку Активировать тариф
+Auth.prototype.enableActivationButton = function () {
+    document.getElementById('activation-btn').classList.remove('disabled');
 };
 
 //Клик по желтой полоске промо-режима
@@ -6360,7 +6393,7 @@ function eventsList() {
             break;
         case 192: // volume off/on
             if (gSTB.GetMute() == 0) playback.mute_video();//if not muted
-                else playback.unmute_video();
+            else playback.unmute_video();
             break;
         case 48: // 0-9
             if(mag.currentObj == NAV_CONTENT || mag.currentObj == NAV_SEARCH_CHANNEL) {
@@ -6630,15 +6663,17 @@ mag.focusElementActivation = function(){
             gSTB.ShowVirtualKeyboard();
             break;
         case("activation-btn"):
-            navigation.activateTariff(function(){
-                if(!navigation.ifActivationMode()){
-                    //mag.openPlayback();
-                    navigation.hidePlayback();
-                    mag.setContentMode();
-                }
-                var tvType = 'Mag';
-                return tvType;
-            });
+            if (navigation.ifActivationButtonAvailable()) {
+                navigation.activateTariff(function () {
+                    if (!navigation.ifActivationMode()) {
+                        //mag.openPlayback();
+                        navigation.hidePlayback();
+                        mag.setContentMode();
+                    }
+                    var tvType = 'Mag';
+                    return tvType;
+                });
+            }
             break;
         case("watch-promo-btn"):
             navigation.watchPromo();
