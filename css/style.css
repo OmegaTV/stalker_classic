@@ -362,6 +362,7 @@ img.errors-img-container__img._error_img {
     width: 100%;
     position: fixed;
     top: 0;
+    padding-left: 25px;
     height: 100%;
     z-index: 2;
     background-color: rgba(0, 0, 0, .8);
